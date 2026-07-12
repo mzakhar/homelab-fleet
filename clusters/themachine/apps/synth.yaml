@@ -1,0 +1,25 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: audio-tools
+  namespace: flux-system
+spec:
+  interval: 1m
+  ref:
+    branch: main
+  url: https://github.com/mzakhar/Audio-Tools
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: synth
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./deploy/k8s
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: audio-tools
+  wait: true
+  timeout: 5m
