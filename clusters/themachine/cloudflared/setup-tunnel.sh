@@ -21,6 +21,7 @@ ZONE_NAME="zakharhome.org"
 HOSTNAMES=(
   "synth.${ZONE_NAME}"
   "books.${ZONE_NAME}"
+  "cleanmail.${ZONE_NAME}"
 )
 ORIGIN_SERVICE="http://traefik.kube-system.svc.cluster.local:80"
 
