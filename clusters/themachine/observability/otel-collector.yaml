@@ -19,6 +19,10 @@ data:
         limit_mib: 384
       batch: {}
 
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+
     exporters:
       otlp/tempo:
         endpoint: tempo:4317
@@ -30,6 +34,8 @@ data:
         verbosity: basic
 
     service:
+      extensions:
+        - health_check
       telemetry:
         metrics:
           address: 0.0.0.0:8888
@@ -83,10 +89,12 @@ spec:
               containerPort: 9464
             - name: metrics
               containerPort: 8888
+            - name: health
+              containerPort: 13133
           readinessProbe:
             httpGet:
               path: /
-              port: metrics
+              port: health
             initialDelaySeconds: 10
             periodSeconds: 10
           resources:
@@ -139,6 +147,9 @@ spec:
     - name: metrics
       port: 8888
       targetPort: metrics
+    - name: health
+      port: 13133
+      targetPort: health
 ---
 apiVersion: v1
 kind: Service
