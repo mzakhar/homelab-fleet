@@ -130,11 +130,14 @@ Deployment ownership:
 
 - [x] Add Kubernetes resource visibility for the `themachine` k3s cluster.
 - [x] Add dashboard inventory cards for `homeserver`, Plex, and observability roadmap placeholders.
+- [x] Deploy central observability stack on `themachine`: Prometheus, Grafana, Tempo, OpenTelemetry Collector, and Uptime Kuma.
+- [x] Add host health metrics for `themachine` and `homeserver` through node exporter and Prometheus.
+- [x] Link Homepage observability cards to Grafana host metrics, Uptime Kuma, and Grafana Explore.
 - [ ] Add service widgets for apps that expose safe internal health/status APIs.
-- [ ] Add actual host health for `homeserver` and `themachine` outside Homepage's Kubernetes widget.
-- [ ] Add future monitoring links/widgets for Pi-hole, Jellyfin, Grafana, Uptime Kuma, or local OTel stack as they become real.
+- [ ] Add service uptime monitors in Uptime Kuma for the hosted apps and media services.
+- [ ] Add richer Homepage widgets for Prometheus/Grafana/Uptime Kuma if they expose safe internal status APIs.
 
-Phase 3 note: Homepage can show Kubernetes metrics for the cluster it runs in, but `homeserver` is a separate machine. Host-level CPU/memory/disk for both Linux boxes needs a monitoring source such as node exporter + Prometheus/Grafana, Uptime Kuma, Glances, or an OpenTelemetry collector/exporter.
+Phase 3 note: Homepage can show Kubernetes metrics for the cluster it runs in, but `homeserver` is a separate machine. The canonical host metric path is now node exporter on each Linux box -> Prometheus on `themachine` -> Grafana dashboard. `homeserver` node exporter is currently running as the `mzakhar` user because sudo requires a password there; make it a systemd service later for reboot persistence.
 
 ### Phase 4 - Action Runner
 
@@ -166,6 +169,10 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 - `themachine` k3s
 - Flux CD status
 - Cloudflare Tunnel
+- Grafana host metrics - `http://192.168.1.3:30300/d/linux-hosts/linux-hosts`
+- Prometheus - `http://192.168.1.3:30090`
+- Uptime Kuma - `http://192.168.1.3:30081`
+- OpenTelemetry Collector - OTLP gRPC `192.168.1.3:30317`, OTLP HTTP `http://192.168.1.3:30318`
 
 ### Media and Home
 
@@ -192,10 +199,13 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 - 2026-07-19: Added static public landing page manifests for `zakharhome.org`; page uses public-safe bio/home-lab framing and the same dark glass visual language.
 - 2026-07-19: Apex `zakharhome.org` moved onto the Cloudflare Tunnel and verified with `HTTP/2 200`.
 - 2026-07-19: Expanded Homepage dashboard inventory with `homeserver`, Plex, and observability placeholders; made dashboard cards more transparent.
+- 2026-07-19: Chose `themachine` for the central observability stack because it has more memory/disk and already hosts the k3s/GitOps control plane; keep `homeserver` lightweight for media/NAS duties.
+- 2026-07-19: Deployed Prometheus, Grafana, Tempo, OpenTelemetry Collector, and Uptime Kuma in the `observability` namespace through Flux.
+- 2026-07-19: Installed node exporter on `themachine` through apt/systemd and started node exporter on `homeserver` as user `mzakhar`; Prometheus verified both scrape targets as up.
 
 ## Open Questions
 
 - Which family Google accounts should be allowed?
 - Do we want a separate internal-only dashboard at `home.zakharhome.org` later?
-- Which monitoring/status service should become canonical: Homepage built-ins, Uptime Kuma, Grafana, or custom health endpoint aggregation?
+- Should `homeserver` get a sudo/systemd-backed node exporter service for reboot persistence?
 - Should app repos add Homepage discovery annotations, or should `homelab-fleet` keep explicit service config?
