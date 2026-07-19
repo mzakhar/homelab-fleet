@@ -19,6 +19,7 @@ TUNNEL_NAME="themachine"
 ZONE_NAME="zakharhome.org"
 # All hostnames route to in-cluster Traefik; host-based Ingress does the rest.
 HOSTNAMES=(
+  "${ZONE_NAME}"
   "synth.${ZONE_NAME}"
   "books.${ZONE_NAME}"
   "cleanmail.${ZONE_NAME}"

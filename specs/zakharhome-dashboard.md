@@ -34,6 +34,13 @@ URL model:
 
 This uses two hostnames instead of path-based protection. Homepage is a Next.js app and is simpler to operate at `/`; a separate protected dashboard hostname avoids subpath/base-URL edge cases while leaving `zakharhome.org` free for a public landing page.
 
+Public landing page content principles:
+
+- Public-safe only: no private family details, internal work details, IP addresses, secrets, or operational endpoints.
+- Tone: concise personal front door for software experiments, AI systems work, home-lab learning, and private family tools.
+- Visual direction: dark image background, glass panels/cards, restrained neon accent lines.
+- Implementation: static nginx site in `clusters/themachine/zakharhome-site/`.
+
 ## Authn/Authz
 
 Initial authn provider: Google account through Cloudflare Access.
@@ -109,10 +116,11 @@ Deployment ownership:
 
 ### Phase 2 - Public Landing + Protected Dashboard
 
-- Add public landing surface for `zakharhome.org/`.
+- [x] Add public landing surface for `zakharhome.org/`.
 - Protect dashboard route with Cloudflare Access using Google IdP.
 - [x] Update Cloudflare Tunnel bootstrap script to include `dashboard.zakharhome.org`.
-- [x] Run Cloudflare tunnel bootstrap with `CLOUDFLARE_API_TOKEN`.
+- [x] Update Cloudflare Tunnel bootstrap script to include apex `zakharhome.org`.
+- [ ] Re-run Cloudflare tunnel bootstrap with `CLOUDFLARE_API_TOKEN` after adding apex `zakharhome.org`.
 - [x] Verify public DNS resolves for `dashboard.zakharhome.org`.
 - [x] Verify unauthenticated requests redirect to Cloudflare Access.
 - Document required manual Cloudflare Access configuration.
@@ -176,11 +184,11 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 - 2026-07-19: Host Homepage at `dashboard.zakharhome.org` instead of `/dashboard` to avoid path-prefix issues.
 - 2026-07-19: Homepage deployed internally on `themachine` and verified through Traefik.
 - 2026-07-19: Cloudflare tunnel/DNS updated and `dashboard.zakharhome.org` verified to redirect unauthenticated requests to Cloudflare Access.
+- 2026-07-19: Added static public landing page manifests for `zakharhome.org`; page uses public-safe bio/home-lab framing and the same dark glass visual language.
 
 ## Open Questions
 
 - Which family Google accounts should be allowed?
-- What exact content should the public `zakharhome.org` landing page show?
 - Do we want a separate internal-only dashboard at `home.zakharhome.org` later?
 - Which monitoring/status service should become canonical: Homepage built-ins, Uptime Kuma, Grafana, or custom health endpoint aggregation?
 - Should app repos add Homepage discovery annotations, or should `homelab-fleet` keep explicit service config?

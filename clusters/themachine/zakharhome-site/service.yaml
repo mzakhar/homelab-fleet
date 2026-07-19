@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: zakharhome-site
+  namespace: zakharhome-site
+  labels:
+    app.kubernetes.io/name: zakharhome-site
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: zakharhome-site
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+      protocol: TCP
