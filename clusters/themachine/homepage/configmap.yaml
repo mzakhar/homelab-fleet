@@ -67,13 +67,45 @@ data:
         - themachine:
             id: themachine
             icon: mdi-kubernetes
-            href: http://192.168.1.3
+            href: http://192.168.1.3:30300/d/linux-hosts/linux-hosts
             description: k3s web-app host
+            widget:
+              type: prometheusmetric
+              url: http://prometheus.observability.svc.cluster.local:9090
+              metrics:
+                - label: CPU
+                  query: 1 - avg(rate(node_cpu_seconds_total{job="linux-hosts",instance="themachine",mode="idle"}[5m]))
+                  format:
+                    type: percent
+                - label: RAM
+                  query: 1 - (node_memory_MemAvailable_bytes{job="linux-hosts",instance="themachine"} / node_memory_MemTotal_bytes{job="linux-hosts",instance="themachine"})
+                  format:
+                    type: percent
+                - label: Root
+                  query: 1 - (node_filesystem_avail_bytes{job="linux-hosts",instance="themachine",mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{job="linux-hosts",instance="themachine",mountpoint="/",fstype!="tmpfs"})
+                  format:
+                    type: percent
         - homeserver:
             id: homeserver
             icon: mdi-server
-            href: http://192.168.1.2
+            href: http://192.168.1.3:30300/d/linux-hosts/linux-hosts
             description: Ubuntu media/NAS host
+            widget:
+              type: prometheusmetric
+              url: http://prometheus.observability.svc.cluster.local:9090
+              metrics:
+                - label: CPU
+                  query: 1 - avg(rate(node_cpu_seconds_total{job="linux-hosts",instance="homeserver",mode="idle"}[5m]))
+                  format:
+                    type: percent
+                - label: RAM
+                  query: 1 - (node_memory_MemAvailable_bytes{job="linux-hosts",instance="homeserver"} / node_memory_MemTotal_bytes{job="linux-hosts",instance="homeserver"})
+                  format:
+                    type: percent
+                - label: Root
+                  query: 1 - (node_filesystem_avail_bytes{job="linux-hosts",instance="homeserver",mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{job="linux-hosts",instance="homeserver",mountpoint="/",fstype!="tmpfs"})
+                  format:
+                    type: percent
         - Flux CD:
             id: flux
             icon: si-flux-#5468ff
@@ -156,7 +188,7 @@ data:
   widgets.yaml: |
     - kubernetes:
         cluster:
-          show: true
+          show: false
           cpu: true
           memory: true
           showLabel: true
