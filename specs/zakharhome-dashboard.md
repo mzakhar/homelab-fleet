@@ -120,7 +120,8 @@ Deployment ownership:
 - Protect dashboard route with Cloudflare Access using Google IdP.
 - [x] Update Cloudflare Tunnel bootstrap script to include `dashboard.zakharhome.org`.
 - [x] Update Cloudflare Tunnel bootstrap script to include apex `zakharhome.org`.
-- [ ] Re-run Cloudflare tunnel bootstrap with `CLOUDFLARE_API_TOKEN` after adding apex `zakharhome.org`.
+- [x] Re-run Cloudflare tunnel bootstrap with `CLOUDFLARE_API_TOKEN` after adding apex `zakharhome.org`.
+- [x] Verify public `https://zakharhome.org` returns the landing page through Cloudflare.
 - [x] Verify public DNS resolves for `dashboard.zakharhome.org`.
 - [x] Verify unauthenticated requests redirect to Cloudflare Access.
 - Document required manual Cloudflare Access configuration.
@@ -185,6 +186,7 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 - 2026-07-19: Homepage deployed internally on `themachine` and verified through Traefik.
 - 2026-07-19: Cloudflare tunnel/DNS updated and `dashboard.zakharhome.org` verified to redirect unauthenticated requests to Cloudflare Access.
 - 2026-07-19: Added static public landing page manifests for `zakharhome.org`; page uses public-safe bio/home-lab framing and the same dark glass visual language.
+- 2026-07-19: Apex `zakharhome.org` moved onto the Cloudflare Tunnel and verified with `HTTP/2 200`.
 
 ## Open Questions
 
