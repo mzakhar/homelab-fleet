@@ -1,6 +1,6 @@
 # Zakharhome Dashboard Spec
 
-Status: deployed internally; public Cloudflare setup pending
+Status: deployed and Access-protected
 Last updated: 2026-07-19
 
 ## Goal
@@ -112,8 +112,9 @@ Deployment ownership:
 - Add public landing surface for `zakharhome.org/`.
 - Protect dashboard route with Cloudflare Access using Google IdP.
 - [x] Update Cloudflare Tunnel bootstrap script to include `dashboard.zakharhome.org`.
-- [ ] Run Cloudflare tunnel bootstrap with `CLOUDFLARE_API_TOKEN`.
-- [ ] Verify public DNS resolves for `dashboard.zakharhome.org`.
+- [x] Run Cloudflare tunnel bootstrap with `CLOUDFLARE_API_TOKEN`.
+- [x] Verify public DNS resolves for `dashboard.zakharhome.org`.
+- [x] Verify unauthenticated requests redirect to Cloudflare Access.
 - Document required manual Cloudflare Access configuration.
 
 ### Phase 3 - Observability Widgets
@@ -173,7 +174,8 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 - 2026-07-19: Use Cloudflare Access with Google accounts for initial authn/authz.
 - 2026-07-19: Plan for future admin actions, but do not put privileged command execution in v1.
 - 2026-07-19: Host Homepage at `dashboard.zakharhome.org` instead of `/dashboard` to avoid path-prefix issues.
-- 2026-07-19: Homepage deployed internally on `themachine` and verified through Traefik; public DNS/tunnel update blocked on Cloudflare API token.
+- 2026-07-19: Homepage deployed internally on `themachine` and verified through Traefik.
+- 2026-07-19: Cloudflare tunnel/DNS updated and `dashboard.zakharhome.org` verified to redirect unauthenticated requests to Cloudflare Access.
 
 ## Open Questions
 
