@@ -135,11 +135,12 @@ Deployment ownership:
 - [x] Link Homepage observability cards to Grafana host metrics, Uptime Kuma, and Grafana Explore.
 - [ ] Add service widgets for apps that expose safe internal health/status APIs.
 - [x] Add service uptime monitors in Uptime Kuma for the hosted apps and media services.
-- [ ] Add richer Homepage widgets for Prometheus/Grafana/Uptime Kuma if they expose safe internal status APIs.
+- [x] Add richer Homepage widgets for Prometheus/Grafana/Uptime Kuma if they expose safe internal status APIs.
 - [x] Add distinct `themachine` and `homeserver` host metric cards backed by Prometheus/node exporter.
 - [x] Add moOde audio endpoints for living room, basement, and console.
 - [x] Add GitHub repository section with public repo metrics through Homepage `customapi`.
-- [ ] Add private GitHub repo metrics using a Kubernetes Secret-backed token instead of committing a token in Homepage config.
+- [x] Add private GitHub repo metrics using a Kubernetes Secret-backed token instead of committing a token in Homepage config.
+- [ ] Add Jellyfin and Plex media widgets after API keys/tokens are provided through normal service UI flows.
 
 Phase 3 note: Homepage can show Kubernetes metrics for the cluster it runs in, but `homeserver` is a separate machine. The canonical host metric path is now node exporter on each Linux box -> Prometheus on `themachine` -> Grafana dashboard. `homeserver` node exporter now runs as a persistent systemd service under user `mzakhar`.
 
@@ -208,6 +209,8 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 - 2026-07-19: Installed node exporter on `themachine` through apt/systemd and installed node exporter on `homeserver` as a persistent systemd service under user `mzakhar`; Prometheus verified both scrape targets as up.
 - 2026-07-19: Initialized Uptime Kuma with SQLite, created admin user `mark`, and added monitors for public sites, observability endpoints, node exporters, Jellyfin, and Plex; all initial checks returned up.
 - 2026-07-19: Updated Homepage to show `themachine` and `homeserver` as separate Prometheus-backed host cards, added all moOde endpoints, and added a GitHub repo section with public repo metrics.
+- 2026-07-19: Added `homepage-secrets` in-cluster with a GitHub token, wired private GitHub repo metric widgets through `${GITHUB_TOKEN}`, created Uptime Kuma status page `homelab`, and added the Homepage Uptime Kuma widget.
+- 2026-07-19: Action runner deployment was held for explicit security approval before adding a persistent admin endpoint with restart/reconcile powers.
 
 ## Open Questions
 
