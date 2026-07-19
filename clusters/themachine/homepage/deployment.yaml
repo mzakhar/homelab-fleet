@@ -13,6 +13,8 @@ spec:
       app.kubernetes.io/name: homepage
   template:
     metadata:
+      annotations:
+        homelab.zakharhome.org/homepage-config-version: "2026-07-19-glass-2"
       labels:
         app.kubernetes.io/name: homepage
     spec:
