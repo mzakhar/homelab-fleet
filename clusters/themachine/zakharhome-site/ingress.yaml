@@ -18,3 +18,13 @@ spec:
                 name: zakharhome-site
                 port:
                   name: http
+    - host: www.zakharhome.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: zakharhome-site
+                port:
+                  name: http
