@@ -176,11 +176,45 @@ data:
             icon: si-github-#ffffff
             href: https://github.com/mzakhar/gmail-frontend-replacement
             description: Private email client repo
+            widget:
+              type: customapi
+              url: https://api.github.com/repos/mzakhar/gmail-frontend-replacement
+              headers:
+                Authorization: Bearer ${GITHUB_TOKEN}
+                Accept: application/vnd.github+json
+                X-GitHub-Api-Version: "2022-11-28"
+              mappings:
+                - field: stargazers_count
+                  label: Stars
+                  format: number
+                - field: open_issues_count
+                  label: Issues
+                  format: number
+                - field: pushed_at
+                  label: Pushed
+                  format: relativeDate
         - Clean Mail Android:
             id: repo-clean-mail-android
             icon: si-github-#ffffff
             href: https://github.com/mzakhar/gmail-android-frontend
             description: Private Android email client
+            widget:
+              type: customapi
+              url: https://api.github.com/repos/mzakhar/gmail-android-frontend
+              headers:
+                Authorization: Bearer ${GITHUB_TOKEN}
+                Accept: application/vnd.github+json
+                X-GitHub-Api-Version: "2022-11-28"
+              mappings:
+                - field: stargazers_count
+                  label: Stars
+                  format: number
+                - field: open_issues_count
+                  label: Issues
+                  format: number
+                - field: pushed_at
+                  label: Pushed
+                  format: relativeDate
         - VS Book App:
             id: repo-vs-book-app
             icon: si-github-#ffffff
@@ -258,6 +292,23 @@ data:
             icon: si-github-#ffffff
             href: https://github.com/mzakhar/local-observability
             description: Local observability skills and stack
+            widget:
+              type: customapi
+              url: https://api.github.com/repos/mzakhar/local-observability
+              headers:
+                Authorization: Bearer ${GITHUB_TOKEN}
+                Accept: application/vnd.github+json
+                X-GitHub-Api-Version: "2022-11-28"
+              mappings:
+                - field: stargazers_count
+                  label: Stars
+                  format: number
+                - field: open_issues_count
+                  label: Issues
+                  format: number
+                - field: pushed_at
+                  label: Pushed
+                  format: relativeDate
 
     - Observability:
         - Host Metrics:
