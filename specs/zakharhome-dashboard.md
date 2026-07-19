@@ -137,7 +137,7 @@ Deployment ownership:
 - [ ] Add service uptime monitors in Uptime Kuma for the hosted apps and media services.
 - [ ] Add richer Homepage widgets for Prometheus/Grafana/Uptime Kuma if they expose safe internal status APIs.
 
-Phase 3 note: Homepage can show Kubernetes metrics for the cluster it runs in, but `homeserver` is a separate machine. The canonical host metric path is now node exporter on each Linux box -> Prometheus on `themachine` -> Grafana dashboard. `homeserver` node exporter is currently running as the `mzakhar` user because sudo requires a password there; make it a systemd service later for reboot persistence.
+Phase 3 note: Homepage can show Kubernetes metrics for the cluster it runs in, but `homeserver` is a separate machine. The canonical host metric path is now node exporter on each Linux box -> Prometheus on `themachine` -> Grafana dashboard. `homeserver` node exporter now runs as a persistent systemd service under user `mzakhar`.
 
 ### Phase 4 - Action Runner
 
@@ -201,11 +201,10 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 - 2026-07-19: Expanded Homepage dashboard inventory with `homeserver`, Plex, and observability placeholders; made dashboard cards more transparent.
 - 2026-07-19: Chose `themachine` for the central observability stack because it has more memory/disk and already hosts the k3s/GitOps control plane; keep `homeserver` lightweight for media/NAS duties.
 - 2026-07-19: Deployed Prometheus, Grafana, Tempo, OpenTelemetry Collector, and Uptime Kuma in the `observability` namespace through Flux.
-- 2026-07-19: Installed node exporter on `themachine` through apt/systemd and started node exporter on `homeserver` as user `mzakhar`; Prometheus verified both scrape targets as up.
+- 2026-07-19: Installed node exporter on `themachine` through apt/systemd and installed node exporter on `homeserver` as a persistent systemd service under user `mzakhar`; Prometheus verified both scrape targets as up.
 
 ## Open Questions
 
 - Which family Google accounts should be allowed?
 - Do we want a separate internal-only dashboard at `home.zakharhome.org` later?
-- Should `homeserver` get a sudo/systemd-backed node exporter service for reboot persistence?
 - Should app repos add Homepage discovery annotations, or should `homelab-fleet` keep explicit service config?
