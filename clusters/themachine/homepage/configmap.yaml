@@ -34,6 +34,9 @@ data:
         columns: 4
       Home:
         style: row
+        columns: 5
+      GitHub:
+        style: row
         columns: 4
       Observability:
         style: row
@@ -133,11 +136,128 @@ data:
             icon: mdi-speaker
             href: http://livingroommoode.local
             description: Living room audio endpoint
+        - Basement moOde:
+            id: basement-moode
+            icon: mdi-speaker-multiple
+            href: http://basementmoode.local
+            description: Basement audio endpoint
+        - Console moOde:
+            id: console-moode
+            icon: mdi-speaker-multiple
+            href: http://consolemoode.local
+            description: Console audio endpoint
         - Pi-hole:
             id: pihole
             icon: pi-hole.png
             href: http://pi.hole/admin/
             description: DNS service, pending restore
+
+    - GitHub:
+        - homelab-fleet:
+            id: repo-homelab-fleet
+            icon: si-github-#ffffff
+            href: https://github.com/mzakhar/homelab-fleet
+            description: GitOps source for home lab
+            widget:
+              type: customapi
+              url: https://api.github.com/repos/mzakhar/homelab-fleet
+              mappings:
+                - field: stargazers_count
+                  label: Stars
+                  format: number
+                - field: open_issues_count
+                  label: Issues
+                  format: number
+                - field: pushed_at
+                  label: Pushed
+                  format: relativeDate
+        - Clean Mail Web:
+            id: repo-clean-mail-web
+            icon: si-github-#ffffff
+            href: https://github.com/mzakhar/gmail-frontend-replacement
+            description: Private email client repo
+        - Clean Mail Android:
+            id: repo-clean-mail-android
+            icon: si-github-#ffffff
+            href: https://github.com/mzakhar/gmail-android-frontend
+            description: Private Android email client
+        - VS Book App:
+            id: repo-vs-book-app
+            icon: si-github-#ffffff
+            href: https://github.com/mzakhar/vs-book-app
+            description: Family book library app
+            widget:
+              type: customapi
+              url: https://api.github.com/repos/mzakhar/vs-book-app
+              mappings:
+                - field: stargazers_count
+                  label: Stars
+                  format: number
+                - field: open_issues_count
+                  label: Issues
+                  format: number
+                - field: pushed_at
+                  label: Pushed
+                  format: relativeDate
+        - Audio Tools:
+            id: repo-audio-tools
+            icon: si-github-#ffffff
+            href: https://github.com/mzakhar/Audio-Tools
+            description: Audio tools playground
+            widget:
+              type: customapi
+              url: https://api.github.com/repos/mzakhar/Audio-Tools
+              mappings:
+                - field: stargazers_count
+                  label: Stars
+                  format: number
+                - field: open_issues_count
+                  label: Issues
+                  format: number
+                - field: pushed_at
+                  label: Pushed
+                  format: relativeDate
+        - g-api-mcp:
+            id: repo-g-api-mcp
+            icon: si-github-#ffffff
+            href: https://github.com/mzakhar/g-api-mcp
+            description: Google workspace MCP server
+            widget:
+              type: customapi
+              url: https://api.github.com/repos/mzakhar/g-api-mcp
+              mappings:
+                - field: stargazers_count
+                  label: Stars
+                  format: number
+                - field: open_issues_count
+                  label: Issues
+                  format: number
+                - field: pushed_at
+                  label: Pushed
+                  format: relativeDate
+        - serpent-rider:
+            id: repo-serpent-rider
+            icon: si-github-#ffffff
+            href: https://github.com/mzakhar/serpent-rider
+            description: Godot side-scroller
+            widget:
+              type: customapi
+              url: https://api.github.com/repos/mzakhar/serpent-rider
+              mappings:
+                - field: stargazers_count
+                  label: Stars
+                  format: number
+                - field: open_issues_count
+                  label: Issues
+                  format: number
+                - field: pushed_at
+                  label: Pushed
+                  format: relativeDate
+        - local-observability:
+            id: repo-local-observability
+            icon: si-github-#ffffff
+            href: https://github.com/mzakhar/local-observability
+            description: Local observability skills and stack
 
     - Observability:
         - Host Metrics:
@@ -326,7 +446,17 @@ data:
     #jellyfin,
     #plex,
     #moode-audio,
+    #basement-moode,
+    #console-moode,
     #pihole,
+    #repo-homelab-fleet,
+    #repo-clean-mail-web,
+    #repo-clean-mail-android,
+    #repo-vs-book-app,
+    #repo-audio-tools,
+    #repo-g-api-mcp,
+    #repo-serpent-rider,
+    #repo-local-observability,
     #host-metrics,
     #service-status,
     #opentelemetry,
@@ -347,7 +477,17 @@ data:
     #jellyfin::before,
     #plex::before,
     #moode-audio::before,
+    #basement-moode::before,
+    #console-moode::before,
     #pihole::before,
+    #repo-homelab-fleet::before,
+    #repo-clean-mail-web::before,
+    #repo-clean-mail-android::before,
+    #repo-vs-book-app::before,
+    #repo-audio-tools::before,
+    #repo-g-api-mcp::before,
+    #repo-serpent-rider::before,
+    #repo-local-observability::before,
     #host-metrics::before,
     #service-status::before,
     #opentelemetry::before,
@@ -372,7 +512,17 @@ data:
     #jellyfin::after,
     #plex::after,
     #moode-audio::after,
+    #basement-moode::after,
+    #console-moode::after,
     #pihole::after,
+    #repo-homelab-fleet::after,
+    #repo-clean-mail-web::after,
+    #repo-clean-mail-android::after,
+    #repo-vs-book-app::after,
+    #repo-audio-tools::after,
+    #repo-g-api-mcp::after,
+    #repo-serpent-rider::after,
+    #repo-local-observability::after,
     #host-metrics::after,
     #service-status::after,
     #opentelemetry::after,
@@ -395,6 +545,17 @@ data:
     #themachine { --glow-cyan: rgba(84, 104, 255, 0.34); }
     #homeserver { --glow-cyan: rgba(118, 224, 183, 0.34); }
     #plex { --glow-cyan: rgba(229, 160, 13, 0.34); }
+    #basement-moode,
+    #console-moode,
+    #moode-audio { --glow-cyan: rgba(125, 211, 252, 0.34); }
+    #repo-homelab-fleet,
+    #repo-clean-mail-web,
+    #repo-clean-mail-android,
+    #repo-vs-book-app,
+    #repo-audio-tools,
+    #repo-g-api-mcp,
+    #repo-serpent-rider,
+    #repo-local-observability { --glow-cyan: rgba(255, 255, 255, 0.24); }
     #cloudflare-tunnel,
     #cloudflare-access { --glow-cyan: rgba(243, 128, 32, 0.34); }
 
