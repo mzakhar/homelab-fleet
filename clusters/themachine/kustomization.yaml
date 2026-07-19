@@ -6,6 +6,7 @@ resources:
   - apps/vs-book-app.yaml
   - apps/gmail-frontend.yaml
   - apps/synth.yaml
+  - observability
   - zakharhome-site
   - homepage
   - cloudflared

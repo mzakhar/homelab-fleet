@@ -111,18 +111,18 @@ data:
         - Host Metrics:
             id: host-metrics
             icon: mdi-chart-line
-            href: https://dashboard.zakharhome.org
-            description: Planned node health for themachine and homeserver
+            href: http://192.168.1.3:30300/d/linux-hosts/linux-hosts
+            description: Grafana host metrics for themachine and homeserver
         - Service Status:
             id: service-status
             icon: mdi-heart-pulse
-            href: https://dashboard.zakharhome.org
-            description: Planned uptime checks for hosted services
+            href: http://192.168.1.3:30081
+            description: Uptime Kuma, LAN-only
         - OpenTelemetry:
             id: opentelemetry
             icon: opentelemetry.png
-            href: https://opentelemetry.io/
-            description: Planned traces, metrics, and logs stack
+            href: http://192.168.1.3:30300/explore
+            description: OTLP collector and Tempo traces
 
     - Docs:
         - Fleet Repo:
