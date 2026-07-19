@@ -321,6 +321,11 @@ data:
             icon: mdi-heart-pulse
             href: http://192.168.1.3:30081
             description: Uptime Kuma, LAN-only
+            widget:
+              type: uptimekuma
+              url: http://uptime-kuma.observability.svc.cluster.local:3001
+              slug: homelab
+              fields: ["up", "down", "uptime"]
         - OpenTelemetry:
             id: opentelemetry
             icon: opentelemetry.png
