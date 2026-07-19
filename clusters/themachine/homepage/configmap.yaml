@@ -161,6 +161,11 @@ data:
             widget:
               type: customapi
               url: https://api.github.com/repos/mzakhar/homelab-fleet
+              headers:
+                Authorization: Bearer ${GITHUB_TOKEN}
+                Accept: application/vnd.github+json
+                X-GitHub-Api-Version: "2022-11-28"
+                User-Agent: homepage-zakharhome
               mappings:
                 - field: stargazers_count
                   label: Stars
@@ -183,6 +188,7 @@ data:
                 Authorization: Bearer ${GITHUB_TOKEN}
                 Accept: application/vnd.github+json
                 X-GitHub-Api-Version: "2022-11-28"
+                User-Agent: homepage-zakharhome
               mappings:
                 - field: stargazers_count
                   label: Stars
@@ -205,6 +211,7 @@ data:
                 Authorization: Bearer ${GITHUB_TOKEN}
                 Accept: application/vnd.github+json
                 X-GitHub-Api-Version: "2022-11-28"
+                User-Agent: homepage-zakharhome
               mappings:
                 - field: stargazers_count
                   label: Stars
@@ -223,6 +230,11 @@ data:
             widget:
               type: customapi
               url: https://api.github.com/repos/mzakhar/vs-book-app
+              headers:
+                Authorization: Bearer ${GITHUB_TOKEN}
+                Accept: application/vnd.github+json
+                X-GitHub-Api-Version: "2022-11-28"
+                User-Agent: homepage-zakharhome
               mappings:
                 - field: stargazers_count
                   label: Stars
@@ -241,6 +253,11 @@ data:
             widget:
               type: customapi
               url: https://api.github.com/repos/mzakhar/Audio-Tools
+              headers:
+                Authorization: Bearer ${GITHUB_TOKEN}
+                Accept: application/vnd.github+json
+                X-GitHub-Api-Version: "2022-11-28"
+                User-Agent: homepage-zakharhome
               mappings:
                 - field: stargazers_count
                   label: Stars
@@ -259,6 +276,11 @@ data:
             widget:
               type: customapi
               url: https://api.github.com/repos/mzakhar/g-api-mcp
+              headers:
+                Authorization: Bearer ${GITHUB_TOKEN}
+                Accept: application/vnd.github+json
+                X-GitHub-Api-Version: "2022-11-28"
+                User-Agent: homepage-zakharhome
               mappings:
                 - field: stargazers_count
                   label: Stars
@@ -277,6 +299,11 @@ data:
             widget:
               type: customapi
               url: https://api.github.com/repos/mzakhar/serpent-rider
+              headers:
+                Authorization: Bearer ${GITHUB_TOKEN}
+                Accept: application/vnd.github+json
+                X-GitHub-Api-Version: "2022-11-28"
+                User-Agent: homepage-zakharhome
               mappings:
                 - field: stargazers_count
                   label: Stars
@@ -299,6 +326,7 @@ data:
                 Authorization: Bearer ${GITHUB_TOKEN}
                 Accept: application/vnd.github+json
                 X-GitHub-Api-Version: "2022-11-28"
+                User-Agent: homepage-zakharhome
               mappings:
                 - field: stargazers_count
                   label: Stars
