@@ -13,6 +13,8 @@ spec:
       app.kubernetes.io/name: zakharhome-site
   template:
     metadata:
+      annotations:
+        homelab.zakharhome.org/site-config-version: "2026-07-19-layout-2"
       labels:
         app.kubernetes.io/name: zakharhome-site
     spec:
