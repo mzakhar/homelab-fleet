@@ -148,8 +148,8 @@ Phase 3 note: Homepage can show Kubernetes metrics for the cluster it runs in, b
 ### Phase 4 - Action Runner
 
 - [x] Add a separate, explicitly protected admin API/service for actions.
-- [ ] Re-run Cloudflare tunnel bootstrap so `actions.zakharhome.org` routes through the tunnel.
-- [ ] Add Cloudflare Access application/policy for `actions.zakharhome.org`.
+- [x] Re-run Cloudflare tunnel bootstrap so `actions.zakharhome.org` routes through the tunnel.
+- [x] Add Cloudflare Access application/policy for `actions.zakharhome.org`.
 - Candidate actions:
   - [x] Flux reconcile selected apps
   - [x] Restart selected deployments
@@ -217,6 +217,7 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 - 2026-07-19: After explicit approval, deployed `action-runner` namespace/service with allowlisted pod/log/restart/reconcile actions; local ingress verified with Cloudflare Access email header simulation.
 - 2026-07-19: Added Jellyfin widget using `HOMEPAGE_VAR_JELLYFIN_KEY`; verified `Count` and `Sessions` widget endpoints return data.
 - 2026-07-19: Added Plex widget using `HOMEPAGE_VAR_PLEX_TOKEN`; browser UI verification is still pending because direct pod-local Homepage API calls rejected manual requests with `400`.
+- 2026-07-19: Re-ran Cloudflare Tunnel bootstrap after creating Access protection for `actions.zakharhome.org`; cloudflared loaded ingress version 7 and external request from `themachine` returned Cloudflare Access `302`.
 
 ## Open Questions
 
