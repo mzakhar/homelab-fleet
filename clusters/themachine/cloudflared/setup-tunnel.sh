@@ -71,11 +71,21 @@ echo "    applied"
 
 for HOSTNAME in "${HOSTNAMES[@]}"; do
   echo "==> DNS: $HOSTNAME CNAME ${TUNNEL_ID}.cfargotunnel.com (proxied)"
-  RECORD_ID=$(cf GET "/zones/$ZONE_ID/dns_records?type=CNAME&name=$HOSTNAME" \
-    | jq -r '.[0].id // empty')
   DNS_BODY=$(jq -n --arg name "$HOSTNAME" --arg target "${TUNNEL_ID}.cfargotunnel.com" \
     '{type:"CNAME", name:$name, content:$target, proxied:true, ttl:1}')
-  if [ -z "$RECORD_ID" ]; then
+
+  EXISTING=$(cf GET "/zones/$ZONE_ID/dns_records?name=$HOSTNAME")
+  NON_CNAME_IDS=$(jq -r '.[] | select(.type != "CNAME") | .id' <<<"$EXISTING")
+  if [ -n "$NON_CNAME_IDS" ]; then
+    while IFS= read -r RECORD_ID; do
+      [ -n "$RECORD_ID" ] || continue
+      cf DELETE "/zones/$ZONE_ID/dns_records/$RECORD_ID" >/dev/null
+      echo "    deleted conflicting non-CNAME record $RECORD_ID"
+    done <<<"$NON_CNAME_IDS"
+  fi
+
+  RECORD_ID=$(jq -r '.[] | select(.type == "CNAME") | .id' <<<"$EXISTING" | head -n1)
+  if [ -z "${RECORD_ID:-}" ]; then
     cf POST "/zones/$ZONE_ID/dns_records" "$DNS_BODY" >/dev/null
     echo "    created"
   else
