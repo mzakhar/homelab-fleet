@@ -128,9 +128,13 @@ Deployment ownership:
 
 ### Phase 3 - Observability Widgets
 
-- Add Kubernetes resource visibility.
-- Add service widgets for apps that expose safe internal health/status APIs.
-- Add future monitoring links/widgets for Pi-hole, Jellyfin, Grafana, Uptime Kuma, or local OTel stack as they become real.
+- [x] Add Kubernetes resource visibility for the `themachine` k3s cluster.
+- [x] Add dashboard inventory cards for `homeserver`, Plex, and observability roadmap placeholders.
+- [ ] Add service widgets for apps that expose safe internal health/status APIs.
+- [ ] Add actual host health for `homeserver` and `themachine` outside Homepage's Kubernetes widget.
+- [ ] Add future monitoring links/widgets for Pi-hole, Jellyfin, Grafana, Uptime Kuma, or local OTel stack as they become real.
+
+Phase 3 note: Homepage can show Kubernetes metrics for the cluster it runs in, but `homeserver` is a separate machine. Host-level CPU/memory/disk for both Linux boxes needs a monitoring source such as node exporter + Prometheus/Grafana, Uptime Kuma, Glances, or an OpenTelemetry collector/exporter.
 
 ### Phase 4 - Action Runner
 
@@ -187,6 +191,7 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 - 2026-07-19: Cloudflare tunnel/DNS updated and `dashboard.zakharhome.org` verified to redirect unauthenticated requests to Cloudflare Access.
 - 2026-07-19: Added static public landing page manifests for `zakharhome.org`; page uses public-safe bio/home-lab framing and the same dark glass visual language.
 - 2026-07-19: Apex `zakharhome.org` moved onto the Cloudflare Tunnel and verified with `HTTP/2 200`.
+- 2026-07-19: Expanded Homepage dashboard inventory with `homeserver`, Plex, and observability placeholders; made dashboard cards more transparent.
 
 ## Open Questions
 

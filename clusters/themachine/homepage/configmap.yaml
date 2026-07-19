@@ -31,8 +31,11 @@ data:
         columns: 3
       Infrastructure:
         style: row
-        columns: 3
+        columns: 4
       Home:
+        style: row
+        columns: 4
+      Observability:
         style: row
         columns: 3
       Docs:
@@ -66,6 +69,11 @@ data:
             icon: mdi-kubernetes
             href: http://192.168.1.3
             description: k3s web-app host
+        - homeserver:
+            id: homeserver
+            icon: mdi-server
+            href: http://192.168.1.2
+            description: Ubuntu media/NAS host
         - Flux CD:
             id: flux
             icon: si-flux-#5468ff
@@ -82,7 +90,12 @@ data:
             id: jellyfin
             icon: jellyfin.png
             href: http://192.168.1.2:8096
-            description: Media server target
+            description: Primary media server
+        - Plex:
+            id: plex
+            icon: plex.png
+            href: http://192.168.1.2:32400/web
+            description: Legacy media server, phasing out
         - moOde Audio:
             id: moode-audio
             icon: mdi-speaker
@@ -93,6 +106,23 @@ data:
             icon: pi-hole.png
             href: http://pi.hole/admin/
             description: DNS service, pending restore
+
+    - Observability:
+        - Host Metrics:
+            id: host-metrics
+            icon: mdi-chart-line
+            href: https://dashboard.zakharhome.org
+            description: Planned node health for themachine and homeserver
+        - Service Status:
+            id: service-status
+            icon: mdi-heart-pulse
+            href: https://dashboard.zakharhome.org
+            description: Planned uptime checks for hosted services
+        - OpenTelemetry:
+            id: opentelemetry
+            icon: opentelemetry.png
+            href: https://opentelemetry.io/
+            description: Planned traces, metrics, and logs stack
 
     - Docs:
         - Fleet Repo:
@@ -150,10 +180,10 @@ data:
   custom.js: ""
   custom.css: |
     :root {
-      --glass-bg: rgba(8, 18, 28, 0.56);
-      --glass-bg-strong: rgba(11, 28, 42, 0.72);
-      --glass-border: rgba(190, 231, 255, 0.22);
-      --glass-highlight: rgba(255, 255, 255, 0.14);
+      --glass-bg: rgba(8, 18, 28, 0.34);
+      --glass-bg-strong: rgba(11, 28, 42, 0.48);
+      --glass-border: rgba(190, 231, 255, 0.18);
+      --glass-highlight: rgba(255, 255, 255, 0.09);
       --glow-cyan: rgba(62, 207, 238, 0.26);
       --glow-rose: rgba(239, 87, 125, 0.22);
       --text-bright: #f3fbff;
@@ -223,14 +253,14 @@ data:
     a[class*="bg-theme"] {
       background:
         linear-gradient(180deg, var(--glass-highlight), var(--glass-bg)),
-        linear-gradient(135deg, rgba(55, 189, 232, 0.12), rgba(234, 88, 125, 0.08)) !important;
+        linear-gradient(135deg, rgba(55, 189, 232, 0.08), rgba(234, 88, 125, 0.05)) !important;
       border: 1px solid var(--glass-border) !important;
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.08),
         0 18px 42px rgba(0, 0, 0, 0.34),
         0 0 34px rgba(28, 143, 180, 0.08);
-      backdrop-filter: blur(18px) saturate(118%) brightness(92%) !important;
-      -webkit-backdrop-filter: blur(18px) saturate(118%) brightness(92%) !important;
+      backdrop-filter: blur(16px) saturate(116%) brightness(94%) !important;
+      -webkit-backdrop-filter: blur(16px) saturate(116%) brightness(94%) !important;
       transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
     }
 
@@ -250,7 +280,7 @@ data:
     button,
     [role="button"] {
       border-color: var(--glass-border) !important;
-      background-color: rgba(8, 18, 28, 0.58) !important;
+      background-color: rgba(8, 18, 28, 0.38) !important;
       backdrop-filter: blur(16px) saturate(120%) !important;
     }
 
@@ -258,11 +288,16 @@ data:
     #synth,
     #books,
     #themachine,
+    #homeserver,
     #flux,
     #cloudflare-tunnel,
     #jellyfin,
+    #plex,
     #moode-audio,
     #pihole,
+    #host-metrics,
+    #service-status,
+    #opentelemetry,
     #fleet-repo,
     #homepage-docs,
     #cloudflare-access {
@@ -274,11 +309,16 @@ data:
     #synth::before,
     #books::before,
     #themachine::before,
+    #homeserver::before,
     #flux::before,
     #cloudflare-tunnel::before,
     #jellyfin::before,
+    #plex::before,
     #moode-audio::before,
     #pihole::before,
+    #host-metrics::before,
+    #service-status::before,
+    #opentelemetry::before,
     #fleet-repo::before,
     #homepage-docs::before,
     #cloudflare-access::before {
@@ -294,11 +334,16 @@ data:
     #synth::after,
     #books::after,
     #themachine::after,
+    #homeserver::after,
     #flux::after,
     #cloudflare-tunnel::after,
     #jellyfin::after,
+    #plex::after,
     #moode-audio::after,
     #pihole::after,
+    #host-metrics::after,
+    #service-status::after,
+    #opentelemetry::after,
     #fleet-repo::after,
     #homepage-docs::after,
     #cloudflare-access::after {
@@ -316,6 +361,8 @@ data:
     #synth { --glow-cyan: rgba(41, 182, 246, 0.36); }
     #books { --glow-cyan: rgba(245, 184, 80, 0.34); }
     #themachine { --glow-cyan: rgba(84, 104, 255, 0.34); }
+    #homeserver { --glow-cyan: rgba(118, 224, 183, 0.34); }
+    #plex { --glow-cyan: rgba(229, 160, 13, 0.34); }
     #cloudflare-tunnel,
     #cloudflare-access { --glow-cyan: rgba(243, 128, 32, 0.34); }
 
