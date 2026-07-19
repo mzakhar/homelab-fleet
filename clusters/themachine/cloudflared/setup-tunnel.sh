@@ -2,7 +2,7 @@
 # Idempotent Cloudflare Tunnel bootstrap for themachine.
 #
 # Creates (or reuses) a remotely-managed tunnel named "themachine", points
-# synth.zakharhome.org at in-cluster Traefik, creates the proxied DNS CNAME,
+# public zakharhome.org hostnames at in-cluster Traefik, creates proxied DNS CNAMEs,
 # and prints the kubectl command to install the tunnel-token secret.
 #
 # Requires: curl, jq, and CLOUDFLARE_API_TOKEN with scopes:
@@ -22,6 +22,7 @@ HOSTNAMES=(
   "synth.${ZONE_NAME}"
   "books.${ZONE_NAME}"
   "cleanmail.${ZONE_NAME}"
+  "dashboard.${ZONE_NAME}"
 )
 ORIGIN_SERVICE="http://traefik.kube-system.svc.cluster.local:80"
 

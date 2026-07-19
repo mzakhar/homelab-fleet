@@ -1,0 +1,191 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage
+  namespace: homepage
+  labels:
+    app.kubernetes.io/name: homepage
+data:
+  kubernetes.yaml: |
+    mode: cluster
+    ingress: true
+    traefik: true
+
+  settings.yaml: |
+    title: Zakhar Home
+    description: Home lab dashboard and app launcher
+    theme: dark
+    color: slate
+    headerStyle: clean
+    target: _blank
+    statusStyle: dot
+    useEqualHeights: true
+    hideVersion: true
+    instanceName: family
+    disableUpdateCheck: true
+    background:
+      image: https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=2560&q=85
+      blur: sm
+      saturate: 50
+      brightness: 50
+      opacity: 70
+    cardBlur: md
+    layout:
+      Hosted Apps:
+        style: row
+        columns: 3
+      Infrastructure:
+        style: row
+        columns: 3
+      Home:
+        style: row
+        columns: 3
+      Docs:
+        style: row
+        columns: 3
+
+  services.yaml: |
+    - Hosted Apps:
+        - Clean Mail:
+            icon: si-gmail-#ea4335
+            href: https://cleanmail.zakharhome.org
+            description: AI-assisted mail workspace
+            siteMonitor: https://cleanmail.zakharhome.org/gmail/health
+        - Synth:
+            icon: mdi-waveform
+            href: https://synth.zakharhome.org
+            description: Browser-hosted synth renderer
+            siteMonitor: https://synth.zakharhome.org/healthz
+        - Books:
+            icon: mdi-bookshelf
+            href: https://books.zakharhome.org/books/
+            description: Family book library
+            siteMonitor: https://books.zakharhome.org/api/health
+
+    - Infrastructure:
+        - themachine:
+            icon: mdi-kubernetes
+            href: http://192.168.1.3
+            description: k3s web-app host
+        - Flux CD:
+            icon: si-flux-#5468ff
+            href: https://github.com/mzakhar/homelab-fleet
+            description: GitOps source of truth
+        - Cloudflare Tunnel:
+            icon: si-cloudflare-#f38020
+            href: https://one.dash.cloudflare.com
+            description: Public ingress for hosted services
+
+    - Home:
+        - Jellyfin:
+            icon: jellyfin.png
+            href: http://192.168.1.2:8096
+            description: Media server target
+        - moOde Audio:
+            icon: mdi-speaker
+            href: http://livingroommoode.local
+            description: Living room audio endpoint
+        - Pi-hole:
+            icon: pi-hole.png
+            href: http://pi.hole/admin/
+            description: DNS service, pending restore
+
+    - Docs:
+        - Fleet Repo:
+            icon: si-github-#ffffff
+            href: https://github.com/mzakhar/homelab-fleet
+            description: k3s and Flux config
+        - Homepage:
+            icon: homepage.png
+            href: https://gethomepage.dev/
+            description: Dashboard documentation
+        - Cloudflare Access:
+            icon: si-cloudflare-#f38020
+            href: https://developers.cloudflare.com/cloudflare-one/access-controls/
+            description: Authn and authz front door
+
+  bookmarks.yaml: |
+    - Admin:
+        - GitHub:
+            - abbr: GH
+              href: https://github.com/mzakhar
+        - Cloudflare:
+            - abbr: CF
+              href: https://dash.cloudflare.com
+        - Flux:
+            - abbr: FX
+              href: https://fluxcd.io/flux/
+
+  widgets.yaml: |
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+          label: themachine
+        nodes:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+    - datetime:
+        text_size: xl
+        format:
+          dateStyle: medium
+          timeStyle: short
+    - search:
+        provider: duckduckgo
+        target: _blank
+
+  docker.yaml: ""
+  custom.js: ""
+  custom.css: |
+    :root {
+      --glass-bg: rgba(10, 21, 31, 0.54);
+      --glass-border: rgba(179, 219, 255, 0.14);
+      --glass-highlight: rgba(255, 255, 255, 0.08);
+    }
+
+    body {
+      background-color: #071018;
+      color: #e6f2ff;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 18% 16%, rgba(54, 170, 199, 0.18), transparent 30%),
+        radial-gradient(circle at 78% 82%, rgba(229, 83, 110, 0.18), transparent 35%),
+        linear-gradient(180deg, rgba(4, 12, 18, 0.18), rgba(4, 12, 18, 0.62));
+      z-index: -1;
+    }
+
+    #page_container,
+    main {
+      max-width: 1460px;
+    }
+
+    .service-card,
+    .bookmark-card,
+    [class*="service"],
+    [class*="bookmark"] {
+      border-color: var(--glass-border) !important;
+    }
+
+    .service-card,
+    .bookmark-card,
+    li[class*="rounded"],
+    div[class*="backdrop-blur"] {
+      background: linear-gradient(180deg, var(--glass-highlight), var(--glass-bg)) !important;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
+    }
+
+    input,
+    button,
+    [role="button"] {
+      border-color: var(--glass-border) !important;
+    }

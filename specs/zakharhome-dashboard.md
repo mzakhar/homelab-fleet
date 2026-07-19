@@ -1,0 +1,178 @@
+# Zakharhome Dashboard Spec
+
+Status: planning
+Last updated: 2026-07-19
+
+## Goal
+
+Turn `zakharhome.org` from a blank site into a home-lab front door:
+
+- Public root website for non-sensitive context and family-friendly links.
+- Protected dashboard/control center for hosted apps, operational status, and later administrative actions.
+- Source-controlled in `homelab-fleet`, deployed to `themachine` through the existing Flux/k3s model.
+- Reflected in Obsidian Home Lab notes as implementation decisions land.
+
+## Current Context
+
+- Fleet repo: `homelab-fleet`
+- Cluster: `themachine`, k3s, Flux CD
+- Public routing: Cloudflare Tunnel named `themachine`
+- Existing routed hosts:
+  - `synth.zakharhome.org`
+  - `books.zakharhome.org`
+  - `cleanmail.zakharhome.org`
+- Existing auth precedent: Clean Mail is behind Cloudflare Access.
+
+## Product Shape
+
+Use `zakharhome.org` as the public front door and keep the operational dashboard behind authentication.
+
+URL model:
+
+- `https://zakharhome.org/` - public landing/home page
+- `https://dashboard.zakharhome.org/` - protected dashboard/control center
+
+This uses two hostnames instead of path-based protection. Homepage is a Next.js app and is simpler to operate at `/`; a separate protected dashboard hostname avoids subpath/base-URL edge cases while leaving `zakharhome.org` free for a public landing page.
+
+## Authn/Authz
+
+Initial authn provider: Google account through Cloudflare Access.
+
+Initial authz model:
+
+- Admin: Mark
+- Users: family members
+- Default deny for protected dashboard routes
+- Public landing page remains unauthenticated
+
+Near-term Cloudflare Access policy:
+
+- Application: `dashboard.zakharhome.org`
+- IdP: Google
+- Allow: Mark and explicit family Google accounts
+- Admin authorization is not enforced inside Homepage in v1; admin-only controls wait for action-runner phase.
+
+Security notes:
+
+- Homepage should not be treated as an auth boundary.
+- Sensitive widgets/API keys stay in Kubernetes Secrets or Cloudflare-protected paths, not committed YAML.
+- Origin protection should prefer Cloudflare Access/tunnel token validation where possible.
+
+## Implementation Target
+
+Target Homepage first.
+
+Reasons:
+
+- Configured by YAML, fits this fleet repo.
+- Static dashboard with service cards, bookmarks, and widgets.
+- Kubernetes integration can show pod CPU/memory and discover annotated services later.
+- Broad widget ecosystem for common home-lab services.
+
+Homepage config files expected:
+
+- `settings.yaml`
+- `services.yaml`
+- `bookmarks.yaml`
+- `widgets.yaml`
+- `kubernetes.yaml`
+
+Deployment ownership:
+
+- Keep Homepage manifests/config in `homelab-fleet`.
+- Add it under `clusters/themachine/` rather than creating a separate app repo unless custom code becomes necessary.
+
+## Phase Plan
+
+### Phase 0 - Spec and Inventory
+
+- Create this spec.
+- Confirm final list of initial dashboard links.
+- Decide exact public/protected routing shape.
+- Update vault Home Lab notes once implementation starts.
+
+### Phase 1 - Homepage MVP
+
+- [x] Add Homepage namespace, config, deployment, service, and ingress manifests.
+- [x] Add Flux registration via `clusters/themachine/kustomization.yaml`.
+- [x] Configure root dashboard cards for:
+  - Clean Mail
+  - Synth
+  - Books
+  - k3s/themachine
+  - Cloudflare Tunnel
+  - Home Lab docs/bookmarks
+- [x] Add non-secret status checks where useful.
+
+### Phase 2 - Public Landing + Protected Dashboard
+
+- Add public landing surface for `zakharhome.org/`.
+- Protect dashboard route with Cloudflare Access using Google IdP.
+- [x] Update Cloudflare Tunnel bootstrap script to include `dashboard.zakharhome.org`.
+- Document required manual Cloudflare Access configuration.
+
+### Phase 3 - Observability Widgets
+
+- Add Kubernetes resource visibility.
+- Add service widgets for apps that expose safe internal health/status APIs.
+- Add future monitoring links/widgets for Pi-hole, Jellyfin, Grafana, Uptime Kuma, or local OTel stack as they become real.
+
+### Phase 4 - Action Runner
+
+- Add a separate, explicitly protected admin API/service for actions.
+- Candidate actions:
+  - Flux reconcile selected apps
+  - Restart deployments
+  - View recent pod status/log snippets
+  - Trigger maintenance scripts
+- Requirements before any action support:
+  - Admin-only authorization
+  - Auditable action log
+  - Allowlist of commands/actions only
+  - No arbitrary shell execution from the browser
+  - Clear confirmation for disruptive actions
+
+Homepage remains the UI/jump point; action runner owns privileged operations.
+
+## Initial Dashboard Groups
+
+### Hosted Apps
+
+- Clean Mail - `https://cleanmail.zakharhome.org`
+- Synth - `https://synth.zakharhome.org`
+- Books - `https://books.zakharhome.org/books/`
+
+### Infrastructure
+
+- `themachine` k3s
+- Flux CD status
+- Cloudflare Tunnel
+
+### Media and Home
+
+- Jellyfin/Plex migration target
+- moOde audio Pis
+- Pi-hole once restored
+
+### Docs
+
+- Home Lab vault index/reference
+- Fleet repo README
+- App operational notes
+
+## Decisions
+
+- 2026-07-19: Use `homelab-fleet` as source of truth for dashboard deployment/config.
+- 2026-07-19: Use Homepage as first implementation target.
+- 2026-07-19: Keep public landing option; protect dashboard/control center.
+- 2026-07-19: Use Cloudflare Access with Google accounts for initial authn/authz.
+- 2026-07-19: Plan for future admin actions, but do not put privileged command execution in v1.
+- 2026-07-19: Host Homepage at `dashboard.zakharhome.org` instead of `/dashboard` to avoid path-prefix issues.
+
+## Open Questions
+
+- Which family Google accounts should be allowed?
+- What exact content should the public `zakharhome.org` landing page show?
+- Do we want a separate internal-only dashboard at `home.zakharhome.org` later?
+- Which monitoring/status service should become canonical: Homepage built-ins, Uptime Kuma, Grafana, or custom health endpoint aggregation?
+- Should app repos add Homepage discovery annotations, or should `homelab-fleet` keep explicit service config?

@@ -6,4 +6,5 @@ resources:
   - apps/vs-book-app.yaml
   - apps/gmail-frontend.yaml
   - apps/synth.yaml
+  - homepage
   - cloudflared
