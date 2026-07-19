@@ -146,6 +146,7 @@ data:
         target: _blank
 
   docker.yaml: ""
+  proxmox.yaml: ""
   custom.js: ""
   custom.css: |
     :root {
