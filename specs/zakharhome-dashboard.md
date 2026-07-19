@@ -140,24 +140,27 @@ Deployment ownership:
 - [x] Add moOde audio endpoints for living room, basement, and console.
 - [x] Add GitHub repository section with public repo metrics through Homepage `customapi`.
 - [x] Add private GitHub repo metrics using a Kubernetes Secret-backed token instead of committing a token in Homepage config.
-- [ ] Add Jellyfin and Plex media widgets after API keys/tokens are provided through normal service UI flows.
+- [x] Add Jellyfin media widget after API key was provided through normal service UI flow.
+- [ ] Add Plex media widget after Plex token is provided through normal service UI flow.
 
 Phase 3 note: Homepage can show Kubernetes metrics for the cluster it runs in, but `homeserver` is a separate machine. The canonical host metric path is now node exporter on each Linux box -> Prometheus on `themachine` -> Grafana dashboard. `homeserver` node exporter now runs as a persistent systemd service under user `mzakhar`.
 
 ### Phase 4 - Action Runner
 
-- Add a separate, explicitly protected admin API/service for actions.
+- [x] Add a separate, explicitly protected admin API/service for actions.
+- [ ] Re-run Cloudflare tunnel bootstrap so `actions.zakharhome.org` routes through the tunnel.
+- [ ] Add Cloudflare Access application/policy for `actions.zakharhome.org`.
 - Candidate actions:
-  - Flux reconcile selected apps
-  - Restart deployments
-  - View recent pod status/log snippets
+  - [x] Flux reconcile selected apps
+  - [x] Restart selected deployments
+  - [x] View recent pod status/log snippets
   - Trigger maintenance scripts
 - Requirements before any action support:
-  - Admin-only authorization
-  - Auditable action log
-  - Allowlist of commands/actions only
-  - No arbitrary shell execution from the browser
-  - Clear confirmation for disruptive actions
+  - [x] Admin-only authorization via Cloudflare Access authenticated-user email header
+  - [x] Auditable action log in process memory
+  - [x] Allowlist of actions/targets only
+  - [x] No arbitrary shell execution from the browser
+  - [x] Clear confirmation for disruptive actions in the action UI
 
 Homepage remains the UI/jump point; action runner owns privileged operations.
 
@@ -211,6 +214,8 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 - 2026-07-19: Updated Homepage to show `themachine` and `homeserver` as separate Prometheus-backed host cards, added all moOde endpoints, and added a GitHub repo section with public repo metrics.
 - 2026-07-19: Added `homepage-secrets` in-cluster with a GitHub token, wired private GitHub repo metric widgets through `${GITHUB_TOKEN}`, created Uptime Kuma status page `homelab`, and added the Homepage Uptime Kuma widget.
 - 2026-07-19: Action runner deployment was held for explicit security approval before adding a persistent admin endpoint with restart/reconcile powers.
+- 2026-07-19: After explicit approval, deployed `action-runner` namespace/service with allowlisted pod/log/restart/reconcile actions; local ingress verified with Cloudflare Access email header simulation.
+- 2026-07-19: Added Jellyfin widget using `HOMEPAGE_VAR_JELLYFIN_KEY`; verified `Count` and `Sessions` widget endpoints return data.
 
 ## Open Questions
 
