@@ -24,7 +24,7 @@ spec:
           command: ["python", "/app/server.py"]
           env:
             - name: ADMIN_EMAILS
-              value: "mzakhar@gmail.com"
+              value: "mark.zakhar@gmail.com"
           ports:
             - name: http
               containerPort: 8080
