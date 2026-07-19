@@ -1,6 +1,6 @@
 # Zakharhome Dashboard Spec
 
-Status: planning
+Status: deployed internally; public Cloudflare setup pending
 Last updated: 2026-07-19
 
 ## Goal
@@ -95,6 +95,9 @@ Deployment ownership:
 
 - [x] Add Homepage namespace, config, deployment, service, and ingress manifests.
 - [x] Add Flux registration via `clusters/themachine/kustomization.yaml`.
+- [x] Push to GitHub and reconcile Flux on `themachine`.
+- [x] Verify `homepage` Deployment ready in k3s.
+- [x] Verify Traefik ingress returns `200 OK` locally for `dashboard.zakharhome.org`.
 - [x] Configure root dashboard cards for:
   - Clean Mail
   - Synth
@@ -109,6 +112,8 @@ Deployment ownership:
 - Add public landing surface for `zakharhome.org/`.
 - Protect dashboard route with Cloudflare Access using Google IdP.
 - [x] Update Cloudflare Tunnel bootstrap script to include `dashboard.zakharhome.org`.
+- [ ] Run Cloudflare tunnel bootstrap with `CLOUDFLARE_API_TOKEN`.
+- [ ] Verify public DNS resolves for `dashboard.zakharhome.org`.
 - Document required manual Cloudflare Access configuration.
 
 ### Phase 3 - Observability Widgets
@@ -168,6 +173,7 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 - 2026-07-19: Use Cloudflare Access with Google accounts for initial authn/authz.
 - 2026-07-19: Plan for future admin actions, but do not put privileged command execution in v1.
 - 2026-07-19: Host Homepage at `dashboard.zakharhome.org` instead of `/dashboard` to avoid path-prefix issues.
+- 2026-07-19: Homepage deployed internally on `themachine` and verified through Traefik; public DNS/tunnel update blocked on Cloudflare API token.
 
 ## Open Questions
 
