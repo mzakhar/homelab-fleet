@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: action-runner
+  namespace: action-runner
+  labels:
+    app.kubernetes.io/name: action-runner
+spec:
+  rules:
+    - host: actions.zakharhome.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: action-runner
+                port:
+                  name: http

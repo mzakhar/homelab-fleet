@@ -25,6 +25,7 @@ HOSTNAMES=(
   "books.${ZONE_NAME}"
   "cleanmail.${ZONE_NAME}"
   "dashboard.${ZONE_NAME}"
+  "actions.${ZONE_NAME}"
 )
 ORIGIN_SERVICE="http://traefik.kube-system.svc.cluster.local:80"
 
