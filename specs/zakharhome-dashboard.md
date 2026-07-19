@@ -134,7 +134,7 @@ Deployment ownership:
 - [x] Add host health metrics for `themachine` and `homeserver` through node exporter and Prometheus.
 - [x] Link Homepage observability cards to Grafana host metrics, Uptime Kuma, and Grafana Explore.
 - [ ] Add service widgets for apps that expose safe internal health/status APIs.
-- [ ] Add service uptime monitors in Uptime Kuma for the hosted apps and media services.
+- [x] Add service uptime monitors in Uptime Kuma for the hosted apps and media services.
 - [ ] Add richer Homepage widgets for Prometheus/Grafana/Uptime Kuma if they expose safe internal status APIs.
 
 Phase 3 note: Homepage can show Kubernetes metrics for the cluster it runs in, but `homeserver` is a separate machine. The canonical host metric path is now node exporter on each Linux box -> Prometheus on `themachine` -> Grafana dashboard. `homeserver` node exporter now runs as a persistent systemd service under user `mzakhar`.
@@ -202,6 +202,7 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 - 2026-07-19: Chose `themachine` for the central observability stack because it has more memory/disk and already hosts the k3s/GitOps control plane; keep `homeserver` lightweight for media/NAS duties.
 - 2026-07-19: Deployed Prometheus, Grafana, Tempo, OpenTelemetry Collector, and Uptime Kuma in the `observability` namespace through Flux.
 - 2026-07-19: Installed node exporter on `themachine` through apt/systemd and installed node exporter on `homeserver` as a persistent systemd service under user `mzakhar`; Prometheus verified both scrape targets as up.
+- 2026-07-19: Initialized Uptime Kuma with SQLite, created admin user `mark`, and added monitors for public sites, observability endpoints, node exporters, Jellyfin, and Plex; all initial checks returned up.
 
 ## Open Questions
 
