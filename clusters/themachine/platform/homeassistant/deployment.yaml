@@ -20,6 +20,21 @@ spec:
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      initContainers:
+        - name: seed-config
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              touch /config/configuration.yaml
+              if ! grep -q '^http:' /config/configuration.yaml; then
+                printf '\nhttp:\n  use_x_forwarded_for: true\n  trusted_proxies:\n    - 127.0.0.1\n    - ::1\n    - 10.42.0.0/16\n    - 10.43.0.0/16\n' >> /config/configuration.yaml
+              fi
+          volumeMounts:
+            - name: config
+              mountPath: /config
       containers:
         - name: homeassistant
           image: ghcr.io/home-assistant/home-assistant:stable
