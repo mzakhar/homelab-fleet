@@ -82,6 +82,73 @@ data:
         AUDIT.insert(0, {"ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), **entry})
         del AUDIT[100:]
 
+    def condition_status(item, condition_type="Ready"):
+        for condition in item.get("status", {}).get("conditions", []):
+            if condition.get("type") == condition_type:
+                return {
+                    "status": condition.get("status"),
+                    "reason": condition.get("reason"),
+                    "message": condition.get("message"),
+                    "time": condition.get("lastTransitionTime"),
+                }
+        return {"status": "Unknown", "reason": None, "message": None, "time": None}
+
+    def short_revision(revision):
+        if not revision:
+            return None
+        sha = revision.rsplit(":", 1)[-1] if ":" in revision else revision
+        return sha[:7]
+
+    def flux_status():
+        source = kube("GET", "/apis/source.toolkit.fluxcd.io/v1/namespaces/flux-system/gitrepositories/flux-system")
+        fleet = kube("GET", "/apis/kustomize.toolkit.fluxcd.io/v1/namespaces/flux-system/kustomizations/flux-system")
+        sources = kube("GET", "/apis/source.toolkit.fluxcd.io/v1/namespaces/flux-system/gitrepositories")
+        kustomizations = kube("GET", "/apis/kustomize.toolkit.fluxcd.io/v1/namespaces/flux-system/kustomizations")
+
+        source_revision = source.get("status", {}).get("artifact", {}).get("revision")
+        applied_revision = fleet.get("status", {}).get("lastAppliedRevision")
+        source_ready = condition_status(source)
+        fleet_ready = condition_status(fleet)
+        items = sources.get("items", []) + kustomizations.get("items", [])
+        failed = []
+        suspended = []
+        ready_count = 0
+
+        for item in items:
+            kind = item.get("kind")
+            namespace = item.get("metadata", {}).get("namespace")
+            name = item.get("metadata", {}).get("name")
+            label = f"{kind}/{namespace}/{name}"
+            if item.get("spec", {}).get("suspend"):
+                suspended.append(label)
+            ready = condition_status(item)
+            if ready.get("status") == "True":
+                ready_count += 1
+            else:
+                failed.append({
+                    "name": label,
+                    "reason": ready.get("reason"),
+                    "message": ready.get("message"),
+                })
+
+        synced = bool(source_revision and applied_revision and source_revision == applied_revision)
+        return {
+            "ok": True,
+            "repo": short_revision(source_revision),
+            "applied": short_revision(applied_revision),
+            "sync": "synced" if synced else "pending",
+            "ready": "yes" if source_ready.get("status") == "True" and fleet_ready.get("status") == "True" else "no",
+            "readyCount": ready_count,
+            "failCount": len(failed),
+            "suspendedCount": len(suspended),
+            "sourceRevision": source_revision,
+            "appliedRevision": applied_revision,
+            "sourceReady": source_ready,
+            "fleetReady": fleet_ready,
+            "failed": failed,
+            "suspended": suspended,
+        }
+
     def shell_html():
         deployments = "".join(f"<option value='{html.escape(k)}'>{html.escape(k)}</option>" for k in ALLOWED_DEPLOYMENTS)
         reconcilers = "".join(f"<option value='{html.escape(k)}'>{html.escape(k)}</option>" for k in ALLOWED_RECONCILERS)
@@ -105,6 +172,7 @@ data:
         <h1>Action Runner</h1>
         <section>
           <h2>Read</h2>
+          <button onclick="call('GET','/flux/status')">Flux Status</button>
           <button onclick="call('GET','/pods')">List Pods</button>
           <select id="logDeployment">{deployments}</select>
           <button onclick="call('GET','/logs?deployment='+document.getElementById('logDeployment').value)">Tail Logs</button>
@@ -149,6 +217,8 @@ data:
                 params = urllib.parse.parse_qs(parsed.query)
                 if parsed.path == "/healthz":
                     return json_response(self, 200, {"ok": True})
+                if parsed.path == "/flux/status":
+                    return json_response(self, 200, flux_status())
                 if parsed.path == "/":
                     if not self.admin():
                         return

@@ -31,7 +31,7 @@ data:
         columns: 3
       Infrastructure:
         style: row
-        columns: 3
+        columns: 4
       Media:
         style: row
         columns: 5
@@ -112,6 +112,24 @@ data:
                   query: 1 - (node_filesystem_avail_bytes{job="linux-hosts",instance="homeserver",mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{job="linux-hosts",instance="homeserver",mountpoint="/",fstype!="tmpfs"})
                   format:
                     type: percent
+        - Fleet Sync:
+            id: fleet-sync
+            icon: si-flux-#5468ff
+            href: https://actions.zakharhome.org/flux/status
+            description: Flux repo pickup and apply state
+            widget:
+              type: customapi
+              url: http://action-runner.action-runner.svc.cluster.local:8080/flux/status
+              mappings:
+                - field: repo
+                  label: Repo
+                - field: applied
+                  label: Applied
+                - field: sync
+                  label: Sync
+                - field: failCount
+                  label: Failed
+                  format: number
         - Pi-hole:
             id: pihole
             icon: pi-hole.png
@@ -557,6 +575,7 @@ data:
     #books,
     #themachine,
     #homeserver,
+    #fleet-sync,
     #flux,
     #cloudflare-tunnel,
     #jellyfin,
@@ -591,6 +610,7 @@ data:
     #books::before,
     #themachine::before,
     #homeserver::before,
+    #fleet-sync::before,
     #flux::before,
     #cloudflare-tunnel::before,
     #jellyfin::before,
@@ -629,6 +649,7 @@ data:
     #books::after,
     #themachine::after,
     #homeserver::after,
+    #fleet-sync::after,
     #flux::after,
     #cloudflare-tunnel::after,
     #jellyfin::after,
@@ -669,6 +690,7 @@ data:
     #books { --glow-cyan: rgba(245, 184, 80, 0.34); }
     #themachine { --glow-cyan: rgba(84, 104, 255, 0.34); }
     #homeserver { --glow-cyan: rgba(118, 224, 183, 0.34); }
+    #fleet-sync { --glow-cyan: rgba(84, 104, 255, 0.34); }
     #plex { --glow-cyan: rgba(229, 160, 13, 0.34); }
     #basement-moode,
     #console-moode,
