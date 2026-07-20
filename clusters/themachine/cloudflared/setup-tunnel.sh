@@ -24,6 +24,7 @@ HOSTNAMES=(
   "synth.${ZONE_NAME}"
   "books.${ZONE_NAME}"
   "cleanmail.${ZONE_NAME}"
+  "cleanmail-api.${ZONE_NAME}"
   "dashboard.${ZONE_NAME}"
   "actions.${ZONE_NAME}"
 )
