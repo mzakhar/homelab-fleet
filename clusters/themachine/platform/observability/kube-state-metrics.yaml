@@ -92,7 +92,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /readyz
-              port: http
+              port: telemetry
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
