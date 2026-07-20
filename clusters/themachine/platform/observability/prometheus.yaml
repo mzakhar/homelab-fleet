@@ -189,6 +189,8 @@ spec:
       app.kubernetes.io/name: prometheus
   template:
     metadata:
+      annotations:
+        homelab.zakharhome.org/prometheus-config-version: "2026-07-20-observability-2"
       labels:
         app.kubernetes.io/name: prometheus
     spec:
