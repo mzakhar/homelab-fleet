@@ -18,7 +18,7 @@ data:
     color: slate
     headerStyle: clean
     target: _blank
-    statusStyle: dot
+    statusStyle: basic
     useEqualHeights: true
     hideVersion: true
     instanceName: family
@@ -118,7 +118,6 @@ data:
             href: https://actions.zakharhome.org/flux/status
             description: Flux repo pickup and apply state
             siteMonitor: http://action-runner.action-runner.svc.cluster.local:8080/flux/health
-            statusStyle: basic
             widget:
               type: customapi
               url: http://action-runner.action-runner.svc.cluster.local:8080/flux/status
