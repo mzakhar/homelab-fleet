@@ -1,0 +1,35 @@
+title: Zakhar Home
+description: Home lab dashboard and app launcher
+theme: dark
+color: slate
+headerStyle: clean
+target: _blank
+statusStyle: basic
+useEqualHeights: true
+hideVersion: true
+instanceName: family
+disableUpdateCheck: true
+background: https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=2560&q=90
+cardBlur: xl
+layout:
+  Hosted Apps:
+    style: row
+    columns: 3
+  Infrastructure:
+    style: row
+    columns: 4
+  Media:
+    style: row
+    columns: 5
+  GitHub:
+    style: row
+    columns: 4
+  Observability:
+    style: row
+    columns: 3
+  Actions:
+    style: row
+    columns: 3
+  Docs:
+    style: row
+    columns: 3

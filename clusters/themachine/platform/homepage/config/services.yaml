@@ -1,0 +1,378 @@
+- Hosted Apps:
+    - Clean Mail:
+        id: cleanmail
+        icon: si-gmail-#ea4335
+        href: https://cleanmail.zakharhome.org
+        description: AI-assisted mail workspace
+        siteMonitor: https://cleanmail.zakharhome.org/gmail/health
+    - Synth:
+        id: synth
+        icon: mdi-waveform
+        href: https://synth.zakharhome.org
+        description: Browser-hosted synth renderer
+        siteMonitor: https://synth.zakharhome.org/healthz
+    - Books:
+        id: books
+        icon: mdi-bookshelf
+        href: https://books.zakharhome.org/books/
+        description: Family book library
+        siteMonitor: https://books.zakharhome.org/api/health
+
+- Infrastructure:
+    - themachine:
+        id: themachine
+        icon: mdi-kubernetes
+        href: http://192.168.1.3:30300/d/linux-hosts/linux-hosts
+        description: k3s web-app host
+        widget:
+          type: prometheusmetric
+          url: http://prometheus.observability.svc.cluster.local:9090
+          metrics:
+            - label: CPU
+              query: 100 * (1 - avg(rate(node_cpu_seconds_total{job="linux-hosts",instance="themachine",mode="idle"}[5m])))
+              format:
+                type: percent
+            - label: RAM
+              query: 100 * (1 - (node_memory_MemAvailable_bytes{job="linux-hosts",instance="themachine"} / node_memory_MemTotal_bytes{job="linux-hosts",instance="themachine"}))
+              format:
+                type: percent
+            - label: Root
+              query: 100 * (1 - (node_filesystem_avail_bytes{job="linux-hosts",instance="themachine",mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{job="linux-hosts",instance="themachine",mountpoint="/",fstype!="tmpfs"}))
+              format:
+                type: percent
+    - homeserver:
+        id: homeserver
+        icon: mdi-server
+        href: http://192.168.1.3:30300/d/linux-hosts/linux-hosts
+        description: Ubuntu media/NAS host
+        widget:
+          type: prometheusmetric
+          url: http://prometheus.observability.svc.cluster.local:9090
+          metrics:
+            - label: CPU
+              query: 100 * (1 - avg(rate(node_cpu_seconds_total{job="linux-hosts",instance="homeserver",mode="idle"}[5m])))
+              format:
+                type: percent
+            - label: RAM
+              query: 100 * (1 - (node_memory_MemAvailable_bytes{job="linux-hosts",instance="homeserver"} / node_memory_MemTotal_bytes{job="linux-hosts",instance="homeserver"}))
+              format:
+                type: percent
+            - label: Root
+              query: 100 * (1 - (node_filesystem_avail_bytes{job="linux-hosts",instance="homeserver",mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{job="linux-hosts",instance="homeserver",mountpoint="/",fstype!="tmpfs"}))
+              format:
+                type: percent
+    - Fleet Sync:
+        id: fleet-sync
+        icon: si-flux-#5468ff
+        href: https://actions.zakharhome.org/flux/status
+        description: Flux repo pickup and apply state
+        siteMonitor: http://action-runner.action-runner.svc.cluster.local:8080/flux/health
+        widget:
+          type: customapi
+          url: http://action-runner.action-runner.svc.cluster.local:8080/flux/status
+          mappings:
+            - field: repo
+              label: Repo
+            - field: applied
+              label: Applied
+            - field: sync
+              label: Sync
+            - field: failCount
+              label: Failed
+              format: number
+    - Pi-hole:
+        id: pihole
+        icon: pi-hole.png
+        href: http://pi.hole/admin/
+        description: DNS service, pending restore
+
+- Media:
+    - Jellyfin:
+        id: jellyfin
+        icon: jellyfin.png
+        href: http://192.168.1.2:8096
+        description: Primary media server
+        widget:
+          type: jellyfin
+          url: http://192.168.1.2:8096
+          key: "{{HOMEPAGE_VAR_JELLYFIN_KEY}}"
+          enableBlocks: true
+          enableNowPlaying: true
+          fields: ["movies", "series", "episodes", "songs"]
+    - Plex:
+        id: plex
+        icon: plex.png
+        href: http://192.168.1.2:32400/web
+        description: Legacy media server, phasing out
+        widget:
+          type: plex
+          url: http://192.168.1.2:32400
+          key: "{{HOMEPAGE_VAR_PLEX_TOKEN}}"
+          fields: ["streams", "movies", "tv"]
+    - moOde Audio:
+        id: moode-audio
+        icon: mdi-speaker
+        href: http://livingroommoode.local
+        description: Living room audio endpoint
+    - Basement moOde:
+        id: basement-moode
+        icon: mdi-speaker-multiple
+        href: http://basementmoode.local
+        description: Basement audio endpoint
+    - Console moOde:
+        id: console-moode
+        icon: mdi-speaker-multiple
+        href: http://consolemoode.local
+        description: Console audio endpoint
+
+- GitHub:
+    - homelab-fleet:
+        id: repo-homelab-fleet
+        icon: si-github-#ffffff
+        href: https://github.com/mzakhar/homelab-fleet
+        description: GitOps source for home lab
+        widget:
+          type: customapi
+          url: https://api.github.com/repos/mzakhar/homelab-fleet
+          headers:
+            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
+            Accept: application/vnd.github+json
+            X-GitHub-Api-Version: "2022-11-28"
+            User-Agent: homepage-zakharhome
+          mappings:
+            - field: stargazers_count
+              label: Stars
+              format: number
+            - field: open_issues_count
+              label: Issues
+              format: number
+            - field: pushed_at
+              label: Pushed
+              format: relativeDate
+    - Clean Mail Web:
+        id: repo-clean-mail-web
+        icon: si-github-#ffffff
+        href: https://github.com/mzakhar/gmail-frontend-replacement
+        description: Private email client repo
+        widget:
+          type: customapi
+          url: https://api.github.com/repos/mzakhar/gmail-frontend-replacement
+          headers:
+            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
+            Accept: application/vnd.github+json
+            X-GitHub-Api-Version: "2022-11-28"
+            User-Agent: homepage-zakharhome
+          mappings:
+            - field: stargazers_count
+              label: Stars
+              format: number
+            - field: open_issues_count
+              label: Issues
+              format: number
+            - field: pushed_at
+              label: Pushed
+              format: relativeDate
+    - Clean Mail Android:
+        id: repo-clean-mail-android
+        icon: si-github-#ffffff
+        href: https://github.com/mzakhar/gmail-android-frontend
+        description: Private Android email client
+        widget:
+          type: customapi
+          url: https://api.github.com/repos/mzakhar/gmail-android-frontend
+          headers:
+            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
+            Accept: application/vnd.github+json
+            X-GitHub-Api-Version: "2022-11-28"
+            User-Agent: homepage-zakharhome
+          mappings:
+            - field: stargazers_count
+              label: Stars
+              format: number
+            - field: open_issues_count
+              label: Issues
+              format: number
+            - field: pushed_at
+              label: Pushed
+              format: relativeDate
+    - VS Book App:
+        id: repo-vs-book-app
+        icon: si-github-#ffffff
+        href: https://github.com/mzakhar/vs-book-app
+        description: Family book library app
+        widget:
+          type: customapi
+          url: https://api.github.com/repos/mzakhar/vs-book-app
+          headers:
+            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
+            Accept: application/vnd.github+json
+            X-GitHub-Api-Version: "2022-11-28"
+            User-Agent: homepage-zakharhome
+          mappings:
+            - field: stargazers_count
+              label: Stars
+              format: number
+            - field: open_issues_count
+              label: Issues
+              format: number
+            - field: pushed_at
+              label: Pushed
+              format: relativeDate
+    - Audio Tools:
+        id: repo-audio-tools
+        icon: si-github-#ffffff
+        href: https://github.com/mzakhar/Audio-Tools
+        description: Audio tools playground
+        widget:
+          type: customapi
+          url: https://api.github.com/repos/mzakhar/Audio-Tools
+          headers:
+            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
+            Accept: application/vnd.github+json
+            X-GitHub-Api-Version: "2022-11-28"
+            User-Agent: homepage-zakharhome
+          mappings:
+            - field: stargazers_count
+              label: Stars
+              format: number
+            - field: open_issues_count
+              label: Issues
+              format: number
+            - field: pushed_at
+              label: Pushed
+              format: relativeDate
+    - g-api-mcp:
+        id: repo-g-api-mcp
+        icon: si-github-#ffffff
+        href: https://github.com/mzakhar/g-api-mcp
+        description: Google workspace MCP server
+        widget:
+          type: customapi
+          url: https://api.github.com/repos/mzakhar/g-api-mcp
+          headers:
+            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
+            Accept: application/vnd.github+json
+            X-GitHub-Api-Version: "2022-11-28"
+            User-Agent: homepage-zakharhome
+          mappings:
+            - field: stargazers_count
+              label: Stars
+              format: number
+            - field: open_issues_count
+              label: Issues
+              format: number
+            - field: pushed_at
+              label: Pushed
+              format: relativeDate
+    - serpent-rider:
+        id: repo-serpent-rider
+        icon: si-github-#ffffff
+        href: https://github.com/mzakhar/serpent-rider
+        description: Godot side-scroller
+        widget:
+          type: customapi
+          url: https://api.github.com/repos/mzakhar/serpent-rider
+          headers:
+            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
+            Accept: application/vnd.github+json
+            X-GitHub-Api-Version: "2022-11-28"
+            User-Agent: homepage-zakharhome
+          mappings:
+            - field: stargazers_count
+              label: Stars
+              format: number
+            - field: open_issues_count
+              label: Issues
+              format: number
+            - field: pushed_at
+              label: Pushed
+              format: relativeDate
+    - local-observability:
+        id: repo-local-observability
+        icon: si-github-#ffffff
+        href: https://github.com/mzakhar/local-observability
+        description: Local observability skills and stack
+        widget:
+          type: customapi
+          url: https://api.github.com/repos/mzakhar/local-observability
+          headers:
+            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
+            Accept: application/vnd.github+json
+            X-GitHub-Api-Version: "2022-11-28"
+            User-Agent: homepage-zakharhome
+          mappings:
+            - field: stargazers_count
+              label: Stars
+              format: number
+            - field: open_issues_count
+              label: Issues
+              format: number
+            - field: pushed_at
+              label: Pushed
+              format: relativeDate
+
+- Observability:
+    - Host Metrics:
+        id: host-metrics
+        icon: mdi-chart-line
+        href: http://192.168.1.3:30300/d/linux-hosts/linux-hosts
+        description: Grafana host metrics for themachine and homeserver
+    - Service Status:
+        id: service-status
+        icon: mdi-heart-pulse
+        href: http://192.168.1.3:30081
+        description: Uptime Kuma, LAN-only
+        widget:
+          type: uptimekuma
+          url: http://uptime-kuma.observability.svc.cluster.local:3001
+          slug: homelab
+          fields: ["up", "down", "uptime"]
+    - OpenTelemetry:
+        id: opentelemetry
+        icon: opentelemetry.png
+        href: http://192.168.1.3:30300/explore
+        description: OTLP collector and Tempo traces
+
+- Actions:
+    - Action Runner:
+        id: action-runner
+        icon: mdi-lightning-bolt
+        href: https://actions.zakharhome.org/
+        description: Admin-only operations
+    - Pod Inventory:
+        id: action-pods
+        icon: mdi-format-list-bulleted-square
+        href: https://actions.zakharhome.org/pods
+        description: Read-only pod status
+    - Fleet Reconcile:
+        id: action-fleet-reconcile
+        icon: mdi-source-branch-sync
+        href: https://actions.zakharhome.org/
+        description: Confirm in action UI
+
+- Docs:
+    - Fleet Repo:
+        id: fleet-repo
+        icon: si-github-#ffffff
+        href: https://github.com/mzakhar/homelab-fleet
+        description: k3s and Flux config
+    - Flux CD:
+        id: flux
+        icon: si-flux-#5468ff
+        href: https://fluxcd.io/flux/
+        description: GitOps controller docs
+    - Cloudflare Tunnel:
+        id: cloudflare-tunnel
+        icon: si-cloudflare-#f38020
+        href: https://one.dash.cloudflare.com
+        description: Tunnel and Access admin
+    - Homepage:
+        id: homepage-docs
+        icon: homepage.png
+        href: https://gethomepage.dev/
+        description: Dashboard documentation
+    - Cloudflare Access:
+        id: cloudflare-access
+        icon: si-cloudflare-#f38020
+        href: https://developers.cloudflare.com/cloudflare-one/access-controls/
+        description: Authn and authz front door

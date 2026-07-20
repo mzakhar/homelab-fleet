@@ -1,0 +1,10 @@
+- Admin:
+    - GitHub:
+        - abbr: GH
+          href: https://github.com/mzakhar
+    - Cloudflare:
+        - abbr: CF
+          href: https://dash.cloudflare.com
+    - Flux:
+        - abbr: FX
+          href: https://fluxcd.io/flux/

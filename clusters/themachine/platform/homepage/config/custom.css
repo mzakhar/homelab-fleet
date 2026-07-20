@@ -1,0 +1,258 @@
+:root {
+  --glass-bg: rgba(8, 18, 28, 0.34);
+  --glass-bg-strong: rgba(11, 28, 42, 0.48);
+  --glass-border: rgba(190, 231, 255, 0.18);
+  --glass-highlight: rgba(255, 255, 255, 0.09);
+  --glow-cyan: rgba(62, 207, 238, 0.26);
+  --glow-rose: rgba(239, 87, 125, 0.22);
+  --text-bright: #f3fbff;
+}
+
+html {
+  min-height: 100%;
+  background: #040a10;
+}
+
+body {
+  background-color: #071018;
+  color: var(--text-bright);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(2, 8, 13, 0.18), rgba(2, 8, 13, 0.72)),
+    radial-gradient(circle at 18% 14%, rgba(54, 196, 230, 0.34), transparent 28%),
+    radial-gradient(circle at 82% 78%, rgba(236, 70, 118, 0.34), transparent 34%),
+    radial-gradient(circle at 58% 34%, rgba(255, 184, 77, 0.12), transparent 28%);
+  z-index: -1;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8), transparent 78%);
+}
+
+#page_container,
+main {
+  max-width: 1460px;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--text-bright) !important;
+  letter-spacing: 0 !important;
+}
+
+.service-card,
+.bookmark-card,
+[class*="service"],
+[class*="bookmark"] {
+  border-color: var(--glass-border) !important;
+}
+
+.service-card,
+.bookmark-card,
+li[class*="rounded"],
+div[class*="backdrop-blur"],
+div[class*="bg-theme"],
+a[class*="bg-theme"] {
+  background:
+    linear-gradient(180deg, var(--glass-highlight), var(--glass-bg)),
+    linear-gradient(135deg, rgba(55, 189, 232, 0.08), rgba(234, 88, 125, 0.05)) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 42px rgba(0, 0, 0, 0.34),
+    0 0 34px rgba(28, 143, 180, 0.08);
+  backdrop-filter: blur(16px) saturate(116%) brightness(94%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(116%) brightness(94%) !important;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.service-card:hover,
+.bookmark-card:hover,
+li[class*="rounded"]:hover,
+a[class*="bg-theme"]:hover {
+  transform: translateY(-2px);
+  border-color: rgba(204, 245, 255, 0.38) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 24px 54px rgba(0, 0, 0, 0.42),
+    0 0 44px rgba(55, 189, 232, 0.16);
+}
+
+input,
+button,
+[role="button"] {
+  border-color: var(--glass-border) !important;
+  background-color: rgba(8, 18, 28, 0.38) !important;
+  backdrop-filter: blur(16px) saturate(120%) !important;
+}
+
+#cleanmail,
+#synth,
+#books,
+#themachine,
+#homeserver,
+#fleet-sync,
+#flux,
+#cloudflare-tunnel,
+#jellyfin,
+#plex,
+#moode-audio,
+#basement-moode,
+#console-moode,
+#pihole,
+#repo-homelab-fleet,
+#repo-clean-mail-web,
+#repo-clean-mail-android,
+#repo-vs-book-app,
+#repo-audio-tools,
+#repo-g-api-mcp,
+#repo-serpent-rider,
+#repo-local-observability,
+#host-metrics,
+#service-status,
+#opentelemetry,
+#action-runner,
+#action-pods,
+#action-fleet-reconcile,
+#fleet-repo,
+#homepage-docs,
+#cloudflare-access {
+  position: relative;
+  overflow: hidden;
+}
+
+#cleanmail::before,
+#synth::before,
+#books::before,
+#themachine::before,
+#homeserver::before,
+#fleet-sync::before,
+#flux::before,
+#cloudflare-tunnel::before,
+#jellyfin::before,
+#plex::before,
+#moode-audio::before,
+#basement-moode::before,
+#console-moode::before,
+#pihole::before,
+#repo-homelab-fleet::before,
+#repo-clean-mail-web::before,
+#repo-clean-mail-android::before,
+#repo-vs-book-app::before,
+#repo-audio-tools::before,
+#repo-g-api-mcp::before,
+#repo-serpent-rider::before,
+#repo-local-observability::before,
+#host-metrics::before,
+#service-status::before,
+#opentelemetry::before,
+#action-runner::before,
+#action-pods::before,
+#action-fleet-reconcile::before,
+#fleet-repo::before,
+#homepage-docs::before,
+#cloudflare-access::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), transparent 44%);
+}
+
+#cleanmail::after,
+#synth::after,
+#books::after,
+#themachine::after,
+#homeserver::after,
+#fleet-sync::after,
+#flux::after,
+#cloudflare-tunnel::after,
+#jellyfin::after,
+#plex::after,
+#moode-audio::after,
+#basement-moode::after,
+#console-moode::after,
+#pihole::after,
+#repo-homelab-fleet::after,
+#repo-clean-mail-web::after,
+#repo-clean-mail-android::after,
+#repo-vs-book-app::after,
+#repo-audio-tools::after,
+#repo-g-api-mcp::after,
+#repo-serpent-rider::after,
+#repo-local-observability::after,
+#host-metrics::after,
+#service-status::after,
+#opentelemetry::after,
+#action-runner::after,
+#action-pods::after,
+#action-fleet-reconcile::after,
+#fleet-repo::after,
+#homepage-docs::after,
+#cloudflare-access::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--glow-cyan), transparent, var(--glow-rose));
+  opacity: 0.9;
+}
+
+#cleanmail { --glow-cyan: rgba(234, 67, 53, 0.34); }
+#synth { --glow-cyan: rgba(41, 182, 246, 0.36); }
+#books { --glow-cyan: rgba(245, 184, 80, 0.34); }
+#themachine { --glow-cyan: rgba(84, 104, 255, 0.34); }
+#homeserver { --glow-cyan: rgba(118, 224, 183, 0.34); }
+#fleet-sync { --glow-cyan: rgba(84, 104, 255, 0.34); }
+#fleet-sync:has([class*="red"]),
+#fleet-sync:has([class*="rose"]) {
+  --glow-cyan: rgba(248, 113, 113, 0.58);
+  --glow-rose: rgba(251, 113, 133, 0.52);
+  border-color: rgba(248, 113, 113, 0.34) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 18px 42px rgba(0, 0, 0, 0.34),
+    0 0 34px rgba(248, 113, 113, 0.16) !important;
+}
+#plex { --glow-cyan: rgba(229, 160, 13, 0.34); }
+#basement-moode,
+#console-moode,
+#moode-audio { --glow-cyan: rgba(125, 211, 252, 0.34); }
+#repo-homelab-fleet,
+#repo-clean-mail-web,
+#repo-clean-mail-android,
+#repo-vs-book-app,
+#repo-audio-tools,
+#repo-g-api-mcp,
+#repo-serpent-rider,
+#repo-local-observability { --glow-cyan: rgba(255, 255, 255, 0.24); }
+#action-runner,
+#action-pods,
+#action-fleet-reconcile { --glow-cyan: rgba(248, 113, 113, 0.28); }
+#cloudflare-tunnel,
+#cloudflare-access { --glow-cyan: rgba(243, 128, 32, 0.34); }
+
+img,
+svg {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.42));
+}

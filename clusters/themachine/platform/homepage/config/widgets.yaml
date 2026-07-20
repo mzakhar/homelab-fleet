@@ -1,0 +1,20 @@
+- kubernetes:
+    cluster:
+      show: false
+      cpu: true
+      memory: true
+      showLabel: true
+      label: themachine
+    nodes:
+      show: true
+      cpu: true
+      memory: true
+      showLabel: true
+- datetime:
+    text_size: xl
+    format:
+      dateStyle: medium
+      timeStyle: short
+- search:
+    provider: duckduckgo
+    target: _blank
