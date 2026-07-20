@@ -17,6 +17,12 @@
         href: https://books.zakharhome.org/books/
         description: Family book library
         siteMonitor: https://books.zakharhome.org/api/health
+    - Home Assistant:
+        id: homeassistant
+        icon: home-assistant.png
+        href: https://homeassistant.zakharhome.org
+        description: Home automation on themachine
+        siteMonitor: http://homeassistant.homeassistant.svc.cluster.local:8123
 
 - Infrastructure:
     - Pi-hole:

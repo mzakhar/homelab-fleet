@@ -26,6 +26,7 @@ HOSTNAMES=(
   "cleanmail.${ZONE_NAME}"
   "cleanmail-api.${ZONE_NAME}"
   "dashboard.${ZONE_NAME}"
+  "homeassistant.${ZONE_NAME}"
   "actions.${ZONE_NAME}"
 )
 ORIGIN_SERVICE="http://traefik.kube-system.svc.cluster.local:80"

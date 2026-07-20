@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homeassistant
+  namespace: homeassistant
+  labels:
+    app.kubernetes.io/name: homeassistant
+  annotations:
+    gethomepage.dev/enabled: "false"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: homeassistant.zakharhome.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: homeassistant
+                port:
+                  name: http

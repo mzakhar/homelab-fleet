@@ -228,6 +228,7 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 - 2026-07-20: Added a focused observability plan for Grafana dashboards, Kubernetes metrics, alerting, app OpenTelemetry, and more useful Homepage triage cards.
 - 2026-07-20: Started observability plan implementation: kube-state-metrics, annotated pod scraping, Prometheus alert rules, Homelab Overview and Telemetry Pipeline Grafana dashboards, and a more useful Homepage Observability row.
 - 2026-07-20: Updated moOde Homepage cards to use bare browser hostnames for links and direct LAN IPs for server-side `customapi` playback widgets because `themachine` does not resolve the bare Moode names.
+- 2026-07-20: Added Home Assistant as a `themachine` platform workload with persistent `/config`, host networking for LAN discovery, an internal service, a `homeassistant.zakharhome.org` ingress, tunnel bootstrap registration, and a Homepage card.
 
 ## Open Questions
 

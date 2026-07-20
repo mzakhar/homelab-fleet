@@ -9,5 +9,6 @@ resources:
   - platform/action-runner
   - platform/observability
   - platform/homepage
+  - platform/homeassistant
   - platform/cloudflared
   - sites/zakharhome
