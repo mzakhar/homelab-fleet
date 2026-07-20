@@ -80,15 +80,15 @@ data:
               url: http://prometheus.observability.svc.cluster.local:9090
               metrics:
                 - label: CPU
-                  query: 1 - avg(rate(node_cpu_seconds_total{job="linux-hosts",instance="themachine",mode="idle"}[5m]))
+                  query: 100 * (1 - avg(rate(node_cpu_seconds_total{job="linux-hosts",instance="themachine",mode="idle"}[5m])))
                   format:
                     type: percent
                 - label: RAM
-                  query: 1 - (node_memory_MemAvailable_bytes{job="linux-hosts",instance="themachine"} / node_memory_MemTotal_bytes{job="linux-hosts",instance="themachine"})
+                  query: 100 * (1 - (node_memory_MemAvailable_bytes{job="linux-hosts",instance="themachine"} / node_memory_MemTotal_bytes{job="linux-hosts",instance="themachine"}))
                   format:
                     type: percent
                 - label: Root
-                  query: 1 - (node_filesystem_avail_bytes{job="linux-hosts",instance="themachine",mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{job="linux-hosts",instance="themachine",mountpoint="/",fstype!="tmpfs"})
+                  query: 100 * (1 - (node_filesystem_avail_bytes{job="linux-hosts",instance="themachine",mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{job="linux-hosts",instance="themachine",mountpoint="/",fstype!="tmpfs"}))
                   format:
                     type: percent
         - homeserver:
@@ -101,15 +101,15 @@ data:
               url: http://prometheus.observability.svc.cluster.local:9090
               metrics:
                 - label: CPU
-                  query: 1 - avg(rate(node_cpu_seconds_total{job="linux-hosts",instance="homeserver",mode="idle"}[5m]))
+                  query: 100 * (1 - avg(rate(node_cpu_seconds_total{job="linux-hosts",instance="homeserver",mode="idle"}[5m])))
                   format:
                     type: percent
                 - label: RAM
-                  query: 1 - (node_memory_MemAvailable_bytes{job="linux-hosts",instance="homeserver"} / node_memory_MemTotal_bytes{job="linux-hosts",instance="homeserver"})
+                  query: 100 * (1 - (node_memory_MemAvailable_bytes{job="linux-hosts",instance="homeserver"} / node_memory_MemTotal_bytes{job="linux-hosts",instance="homeserver"}))
                   format:
                     type: percent
                 - label: Root
-                  query: 1 - (node_filesystem_avail_bytes{job="linux-hosts",instance="homeserver",mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{job="linux-hosts",instance="homeserver",mountpoint="/",fstype!="tmpfs"})
+                  query: 100 * (1 - (node_filesystem_avail_bytes{job="linux-hosts",instance="homeserver",mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{job="linux-hosts",instance="homeserver",mountpoint="/",fstype!="tmpfs"}))
                   format:
                     type: percent
         - Fleet Sync:
@@ -469,8 +469,9 @@ data:
         const card = document.querySelector("#fleet-sync");
         if (!card) return;
         const text = card.textContent || "";
-        const match = text.match(/Failed\s+(\d+)/i);
-        const failed = match ? Number.parseInt(match[1], 10) : 0;
+        const labelFirst = text.match(/Failed\s+(\d+)/i);
+        const valueFirst = text.match(/(\d+)\s+Failed/i);
+        const failed = Number.parseInt((labelFirst || valueFirst || [])[1] || "0", 10);
         card.classList.toggle("fleet-sync-warning", Number.isFinite(failed) && failed > 0);
       };
 
