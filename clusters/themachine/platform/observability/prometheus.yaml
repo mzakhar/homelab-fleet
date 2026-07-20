@@ -73,6 +73,13 @@ data:
             action: replace
             target_label: app
 
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: observability
+data:
   alert-rules.yml: |
     groups:
       - name: homelab.rules
@@ -232,9 +239,8 @@ spec:
             - name: config
               mountPath: /etc/prometheus/prometheus.yml
               subPath: prometheus.yml
-            - name: config
-              mountPath: /etc/prometheus/rules/alert-rules.yml
-              subPath: alert-rules.yml
+            - name: rules
+              mountPath: /etc/prometheus/rules
             - name: data
               mountPath: /prometheus
             - name: tmp
@@ -243,6 +249,9 @@ spec:
         - name: config
           configMap:
             name: prometheus-config
+        - name: rules
+          configMap:
+            name: prometheus-rules
         - name: data
           persistentVolumeClaim:
             claimName: prometheus-data
