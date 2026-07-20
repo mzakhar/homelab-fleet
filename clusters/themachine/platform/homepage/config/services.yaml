@@ -112,18 +112,57 @@
     - moOde Audio:
         id: moode-audio
         icon: mdi-speaker
-        href: http://livingroommoode.local
+        href: http://livingroommoode/
         description: Living room audio endpoint
+        widget:
+          type: customapi
+          url: http://192.168.1.46/engine-mpd.php
+          mappings:
+            - field: state
+              label: State
+              format: text
+            - field: volume
+              label: Vol
+              format: number
+            - field: playlistlength
+              label: Queue
+              format: number
     - Basement moOde:
         id: basement-moode
         icon: mdi-speaker-multiple
-        href: http://basementmoode.local
+        href: http://basementmoode/
         description: Basement audio endpoint
+        widget:
+          type: customapi
+          url: http://192.168.1.40/engine-mpd.php
+          mappings:
+            - field: state
+              label: State
+              format: text
+            - field: volume
+              label: Vol
+              format: number
+            - field: playlistlength
+              label: Queue
+              format: number
     - Console moOde:
         id: console-moode
         icon: mdi-speaker-multiple
-        href: http://consolemoode.local
+        href: http://consolemoode/
         description: Console audio endpoint
+        widget:
+          type: customapi
+          url: http://192.168.1.28/engine-mpd.php
+          mappings:
+            - field: state
+              label: State
+              format: text
+            - field: volume
+              label: Vol
+              format: number
+            - field: playlistlength
+              label: Queue
+              format: number
 
 - GitHub:
     - homelab-fleet:
