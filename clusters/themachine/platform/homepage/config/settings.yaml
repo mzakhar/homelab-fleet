@@ -21,15 +21,15 @@ layout:
   Media:
     style: row
     columns: 5
-  GitHub:
-    style: row
-    columns: 4
   Observability:
     style: row
     columns: 3
   Actions:
     style: row
     columns: 3
+  GitHub:
+    style: row
+    columns: 4
   Docs:
     style: row
     columns: 3

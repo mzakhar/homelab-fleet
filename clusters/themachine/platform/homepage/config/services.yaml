@@ -109,192 +109,6 @@
               label: Queue
               format: number
 
-- GitHub:
-    - homelab-fleet:
-        id: repo-homelab-fleet
-        icon: si-github-#ffffff
-        href: https://github.com/mzakhar/homelab-fleet
-        description: GitOps source for home lab
-        widget:
-          type: customapi
-          url: https://api.github.com/repos/mzakhar/homelab-fleet
-          headers:
-            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
-            Accept: application/vnd.github+json
-            X-GitHub-Api-Version: "2022-11-28"
-            User-Agent: homepage-zakharhome
-          mappings:
-            - field: stargazers_count
-              label: Stars
-              format: number
-            - field: open_issues_count
-              label: Issues
-              format: number
-            - field: pushed_at
-              label: Pushed
-              format: relativeDate
-    - Clean Mail Web:
-        id: repo-clean-mail-web
-        icon: si-github-#ffffff
-        href: https://github.com/mzakhar/gmail-frontend-replacement
-        description: Private email client repo
-        widget:
-          type: customapi
-          url: https://api.github.com/repos/mzakhar/gmail-frontend-replacement
-          headers:
-            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
-            Accept: application/vnd.github+json
-            X-GitHub-Api-Version: "2022-11-28"
-            User-Agent: homepage-zakharhome
-          mappings:
-            - field: stargazers_count
-              label: Stars
-              format: number
-            - field: open_issues_count
-              label: Issues
-              format: number
-            - field: pushed_at
-              label: Pushed
-              format: relativeDate
-    - Clean Mail Android:
-        id: repo-clean-mail-android
-        icon: si-github-#ffffff
-        href: https://github.com/mzakhar/gmail-android-frontend
-        description: Private Android email client
-        widget:
-          type: customapi
-          url: https://api.github.com/repos/mzakhar/gmail-android-frontend
-          headers:
-            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
-            Accept: application/vnd.github+json
-            X-GitHub-Api-Version: "2022-11-28"
-            User-Agent: homepage-zakharhome
-          mappings:
-            - field: stargazers_count
-              label: Stars
-              format: number
-            - field: open_issues_count
-              label: Issues
-              format: number
-            - field: pushed_at
-              label: Pushed
-              format: relativeDate
-    - VS Book App:
-        id: repo-vs-book-app
-        icon: si-github-#ffffff
-        href: https://github.com/mzakhar/vs-book-app
-        description: Family book library app
-        widget:
-          type: customapi
-          url: https://api.github.com/repos/mzakhar/vs-book-app
-          headers:
-            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
-            Accept: application/vnd.github+json
-            X-GitHub-Api-Version: "2022-11-28"
-            User-Agent: homepage-zakharhome
-          mappings:
-            - field: stargazers_count
-              label: Stars
-              format: number
-            - field: open_issues_count
-              label: Issues
-              format: number
-            - field: pushed_at
-              label: Pushed
-              format: relativeDate
-    - Audio Tools:
-        id: repo-audio-tools
-        icon: si-github-#ffffff
-        href: https://github.com/mzakhar/Audio-Tools
-        description: Audio tools playground
-        widget:
-          type: customapi
-          url: https://api.github.com/repos/mzakhar/Audio-Tools
-          headers:
-            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
-            Accept: application/vnd.github+json
-            X-GitHub-Api-Version: "2022-11-28"
-            User-Agent: homepage-zakharhome
-          mappings:
-            - field: stargazers_count
-              label: Stars
-              format: number
-            - field: open_issues_count
-              label: Issues
-              format: number
-            - field: pushed_at
-              label: Pushed
-              format: relativeDate
-    - g-api-mcp:
-        id: repo-g-api-mcp
-        icon: si-github-#ffffff
-        href: https://github.com/mzakhar/g-api-mcp
-        description: Google workspace MCP server
-        widget:
-          type: customapi
-          url: https://api.github.com/repos/mzakhar/g-api-mcp
-          headers:
-            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
-            Accept: application/vnd.github+json
-            X-GitHub-Api-Version: "2022-11-28"
-            User-Agent: homepage-zakharhome
-          mappings:
-            - field: stargazers_count
-              label: Stars
-              format: number
-            - field: open_issues_count
-              label: Issues
-              format: number
-            - field: pushed_at
-              label: Pushed
-              format: relativeDate
-    - serpent-rider:
-        id: repo-serpent-rider
-        icon: si-github-#ffffff
-        href: https://github.com/mzakhar/serpent-rider
-        description: Godot side-scroller
-        widget:
-          type: customapi
-          url: https://api.github.com/repos/mzakhar/serpent-rider
-          headers:
-            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
-            Accept: application/vnd.github+json
-            X-GitHub-Api-Version: "2022-11-28"
-            User-Agent: homepage-zakharhome
-          mappings:
-            - field: stargazers_count
-              label: Stars
-              format: number
-            - field: open_issues_count
-              label: Issues
-              format: number
-            - field: pushed_at
-              label: Pushed
-              format: relativeDate
-    - local-observability:
-        id: repo-local-observability
-        icon: si-github-#ffffff
-        href: https://github.com/mzakhar/local-observability
-        description: Local observability skills and stack
-        widget:
-          type: customapi
-          url: https://api.github.com/repos/mzakhar/local-observability
-          headers:
-            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
-            Accept: application/vnd.github+json
-            X-GitHub-Api-Version: "2022-11-28"
-            User-Agent: homepage-zakharhome
-          mappings:
-            - field: stargazers_count
-              label: Stars
-              format: number
-            - field: open_issues_count
-              label: Issues
-              format: number
-            - field: pushed_at
-              label: Pushed
-              format: relativeDate
-
 - Observability:
     - Service Status:
         id: service-status
@@ -443,6 +257,280 @@
         icon: mdi-source-branch-sync
         href: https://actions.zakharhome.org/
         description: Confirm in action UI
+
+- GitHub:
+    - homelab-fleet:
+        id: repo-homelab-fleet
+        icon: si-github-#ffffff
+        href: https://github.com/mzakhar/homelab-fleet
+        description: GitOps source for home lab
+        widget:
+          type: customapi
+          url: https://api.github.com/graphql
+          method: POST
+          headers:
+            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
+            Accept: application/vnd.github+json
+            X-GitHub-Api-Version: "2022-11-28"
+            User-Agent: homepage-zakharhome
+            Content-Type: application/json
+          requestBody:
+            query: |
+              query {
+                repository(owner: "mzakhar", name: "homelab-fleet") {
+                  issues(states: OPEN) { totalCount }
+                  pullRequests(states: OPEN) { totalCount }
+                  pushedAt
+                }
+              }
+          mappings:
+            - field: data.repository.pullRequests.totalCount
+              label: PRs
+              format: number
+            - field: data.repository.issues.totalCount
+              label: Issues
+              format: number
+            - field: data.repository.pushedAt
+              label: Pushed
+              format: relativeDate
+    - Clean Mail Web:
+        id: repo-clean-mail-web
+        icon: si-github-#ffffff
+        href: https://github.com/mzakhar/gmail-frontend-replacement
+        description: Private email client repo
+        widget:
+          type: customapi
+          url: https://api.github.com/graphql
+          method: POST
+          headers:
+            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
+            Accept: application/vnd.github+json
+            X-GitHub-Api-Version: "2022-11-28"
+            User-Agent: homepage-zakharhome
+            Content-Type: application/json
+          requestBody:
+            query: |
+              query {
+                repository(owner: "mzakhar", name: "gmail-frontend-replacement") {
+                  issues(states: OPEN) { totalCount }
+                  pullRequests(states: OPEN) { totalCount }
+                  pushedAt
+                }
+              }
+          mappings:
+            - field: data.repository.pullRequests.totalCount
+              label: PRs
+              format: number
+            - field: data.repository.issues.totalCount
+              label: Issues
+              format: number
+            - field: data.repository.pushedAt
+              label: Pushed
+              format: relativeDate
+    - Clean Mail Android:
+        id: repo-clean-mail-android
+        icon: si-github-#ffffff
+        href: https://github.com/mzakhar/gmail-android-frontend
+        description: Private Android email client
+        widget:
+          type: customapi
+          url: https://api.github.com/graphql
+          method: POST
+          headers:
+            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
+            Accept: application/vnd.github+json
+            X-GitHub-Api-Version: "2022-11-28"
+            User-Agent: homepage-zakharhome
+            Content-Type: application/json
+          requestBody:
+            query: |
+              query {
+                repository(owner: "mzakhar", name: "gmail-android-frontend") {
+                  issues(states: OPEN) { totalCount }
+                  pullRequests(states: OPEN) { totalCount }
+                  pushedAt
+                }
+              }
+          mappings:
+            - field: data.repository.pullRequests.totalCount
+              label: PRs
+              format: number
+            - field: data.repository.issues.totalCount
+              label: Issues
+              format: number
+            - field: data.repository.pushedAt
+              label: Pushed
+              format: relativeDate
+    - VS Book App:
+        id: repo-vs-book-app
+        icon: si-github-#ffffff
+        href: https://github.com/mzakhar/vs-book-app
+        description: Family book library app
+        widget:
+          type: customapi
+          url: https://api.github.com/graphql
+          method: POST
+          headers:
+            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
+            Accept: application/vnd.github+json
+            X-GitHub-Api-Version: "2022-11-28"
+            User-Agent: homepage-zakharhome
+            Content-Type: application/json
+          requestBody:
+            query: |
+              query {
+                repository(owner: "mzakhar", name: "vs-book-app") {
+                  issues(states: OPEN) { totalCount }
+                  pullRequests(states: OPEN) { totalCount }
+                  pushedAt
+                }
+              }
+          mappings:
+            - field: data.repository.pullRequests.totalCount
+              label: PRs
+              format: number
+            - field: data.repository.issues.totalCount
+              label: Issues
+              format: number
+            - field: data.repository.pushedAt
+              label: Pushed
+              format: relativeDate
+    - Audio Tools:
+        id: repo-audio-tools
+        icon: si-github-#ffffff
+        href: https://github.com/mzakhar/Audio-Tools
+        description: Audio tools playground
+        widget:
+          type: customapi
+          url: https://api.github.com/graphql
+          method: POST
+          headers:
+            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
+            Accept: application/vnd.github+json
+            X-GitHub-Api-Version: "2022-11-28"
+            User-Agent: homepage-zakharhome
+            Content-Type: application/json
+          requestBody:
+            query: |
+              query {
+                repository(owner: "mzakhar", name: "Audio-Tools") {
+                  issues(states: OPEN) { totalCount }
+                  pullRequests(states: OPEN) { totalCount }
+                  pushedAt
+                }
+              }
+          mappings:
+            - field: data.repository.pullRequests.totalCount
+              label: PRs
+              format: number
+            - field: data.repository.issues.totalCount
+              label: Issues
+              format: number
+            - field: data.repository.pushedAt
+              label: Pushed
+              format: relativeDate
+    - g-api-mcp:
+        id: repo-g-api-mcp
+        icon: si-github-#ffffff
+        href: https://github.com/mzakhar/g-api-mcp
+        description: Google workspace MCP server
+        widget:
+          type: customapi
+          url: https://api.github.com/graphql
+          method: POST
+          headers:
+            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
+            Accept: application/vnd.github+json
+            X-GitHub-Api-Version: "2022-11-28"
+            User-Agent: homepage-zakharhome
+            Content-Type: application/json
+          requestBody:
+            query: |
+              query {
+                repository(owner: "mzakhar", name: "g-api-mcp") {
+                  issues(states: OPEN) { totalCount }
+                  pullRequests(states: OPEN) { totalCount }
+                  pushedAt
+                }
+              }
+          mappings:
+            - field: data.repository.pullRequests.totalCount
+              label: PRs
+              format: number
+            - field: data.repository.issues.totalCount
+              label: Issues
+              format: number
+            - field: data.repository.pushedAt
+              label: Pushed
+              format: relativeDate
+    - serpent-rider:
+        id: repo-serpent-rider
+        icon: si-github-#ffffff
+        href: https://github.com/mzakhar/serpent-rider
+        description: Godot side-scroller
+        widget:
+          type: customapi
+          url: https://api.github.com/graphql
+          method: POST
+          headers:
+            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
+            Accept: application/vnd.github+json
+            X-GitHub-Api-Version: "2022-11-28"
+            User-Agent: homepage-zakharhome
+            Content-Type: application/json
+          requestBody:
+            query: |
+              query {
+                repository(owner: "mzakhar", name: "serpent-rider") {
+                  issues(states: OPEN) { totalCount }
+                  pullRequests(states: OPEN) { totalCount }
+                  pushedAt
+                }
+              }
+          mappings:
+            - field: data.repository.pullRequests.totalCount
+              label: PRs
+              format: number
+            - field: data.repository.issues.totalCount
+              label: Issues
+              format: number
+            - field: data.repository.pushedAt
+              label: Pushed
+              format: relativeDate
+    - local-observability:
+        id: repo-local-observability
+        icon: si-github-#ffffff
+        href: https://github.com/mzakhar/local-observability
+        description: Local observability skills and stack
+        widget:
+          type: customapi
+          url: https://api.github.com/graphql
+          method: POST
+          headers:
+            Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
+            Accept: application/vnd.github+json
+            X-GitHub-Api-Version: "2022-11-28"
+            User-Agent: homepage-zakharhome
+            Content-Type: application/json
+          requestBody:
+            query: |
+              query {
+                repository(owner: "mzakhar", name: "local-observability") {
+                  issues(states: OPEN) { totalCount }
+                  pullRequests(states: OPEN) { totalCount }
+                  pushedAt
+                }
+              }
+          mappings:
+            - field: data.repository.pullRequests.totalCount
+              label: PRs
+              format: number
+            - field: data.repository.issues.totalCount
+              label: Issues
+              format: number
+            - field: data.repository.pushedAt
+              label: Pushed
+              format: relativeDate
 
 - Docs:
     - Fleet Repo:
