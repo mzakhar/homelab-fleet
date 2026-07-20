@@ -175,18 +175,16 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 ### Infrastructure
 
 - `themachine` k3s
-- Flux CD status
-- Cloudflare Tunnel
+- Pi-hole once restored
 - Grafana host metrics - `http://192.168.1.3:30300/d/linux-hosts/linux-hosts`
 - Prometheus - `http://192.168.1.3:30090`
 - Uptime Kuma - `http://192.168.1.3:30081`
 - OpenTelemetry Collector - OTLP gRPC `192.168.1.3:30317`, OTLP HTTP `http://192.168.1.3:30318`
 
-### Media and Home
+### Media
 
 - Jellyfin/Plex migration target
 - moOde audio Pis
-- Pi-hole once restored
 
 ### Docs
 
@@ -218,6 +216,7 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 - 2026-07-19: Added Jellyfin widget using `HOMEPAGE_VAR_JELLYFIN_KEY`; verified `Count` and `Sessions` widget endpoints return data.
 - 2026-07-19: Added Plex widget using `HOMEPAGE_VAR_PLEX_TOKEN`; browser UI verification is still pending because direct pod-local Homepage API calls rejected manual requests with `400`.
 - 2026-07-19: Re-ran Cloudflare Tunnel bootstrap after creating Access protection for `actions.zakharhome.org`; cloudflared loaded ingress version 7 and external request from `themachine` returned Cloudflare Access `302`.
+- 2026-07-19: Renamed Homepage `Home` section to `Media`, moved Pi-hole into `Infrastructure`, and moved non-actionable Flux/Cloudflare cards out of `Infrastructure` into `Docs`.
 
 ## Open Questions
 

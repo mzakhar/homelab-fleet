@@ -31,8 +31,8 @@ data:
         columns: 3
       Infrastructure:
         style: row
-        columns: 4
-      Home:
+        columns: 3
+      Media:
         style: row
         columns: 5
       GitHub:
@@ -112,18 +112,13 @@ data:
                   query: 1 - (node_filesystem_avail_bytes{job="linux-hosts",instance="homeserver",mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{job="linux-hosts",instance="homeserver",mountpoint="/",fstype!="tmpfs"})
                   format:
                     type: percent
-        - Flux CD:
-            id: flux
-            icon: si-flux-#5468ff
-            href: https://github.com/mzakhar/homelab-fleet
-            description: GitOps source of truth
-        - Cloudflare Tunnel:
-            id: cloudflare-tunnel
-            icon: si-cloudflare-#f38020
-            href: https://one.dash.cloudflare.com
-            description: Public ingress for hosted services
+        - Pi-hole:
+            id: pihole
+            icon: pi-hole.png
+            href: http://pi.hole/admin/
+            description: DNS service, pending restore
 
-    - Home:
+    - Media:
         - Jellyfin:
             id: jellyfin
             icon: jellyfin.png
@@ -161,11 +156,6 @@ data:
             icon: mdi-speaker-multiple
             href: http://consolemoode.local
             description: Console audio endpoint
-        - Pi-hole:
-            id: pihole
-            icon: pi-hole.png
-            href: http://pi.hole/admin/
-            description: DNS service, pending restore
 
     - GitHub:
         - homelab-fleet:
@@ -398,6 +388,16 @@ data:
             icon: si-github-#ffffff
             href: https://github.com/mzakhar/homelab-fleet
             description: k3s and Flux config
+        - Flux CD:
+            id: flux
+            icon: si-flux-#5468ff
+            href: https://fluxcd.io/flux/
+            description: GitOps controller docs
+        - Cloudflare Tunnel:
+            id: cloudflare-tunnel
+            icon: si-cloudflare-#f38020
+            href: https://one.dash.cloudflare.com
+            description: Tunnel and Access admin
         - Homepage:
             id: homepage-docs
             icon: homepage.png
