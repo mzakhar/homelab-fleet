@@ -97,6 +97,240 @@ data:
         }
       ]
     }
+  homelab-overview.json: |
+    {
+      "uid": "homelab-overview",
+      "title": "Homelab Overview",
+      "tags": ["homelab", "overview"],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "time": { "from": "now-6h", "to": "now" },
+      "panels": [
+        {
+          "type": "stat",
+          "title": "Firing Alerts",
+          "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "sum(ALERTS{alertstate=\"firing\"}) or vector(0)",
+              "legendFormat": "alerts"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+        },
+        {
+          "type": "stat",
+          "title": "Targets Down",
+          "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "sum(up == 0)",
+              "legendFormat": "down"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+        },
+        {
+          "type": "stat",
+          "title": "Unavailable Deployments",
+          "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "sum(kube_deployment_status_replicas_unavailable) or vector(0)",
+              "legendFormat": "unavailable"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+        },
+        {
+          "type": "stat",
+          "title": "Pending Pods",
+          "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "sum(kube_pod_status_phase{phase=\"Pending\"}) or vector(0)",
+              "legendFormat": "pending"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+        },
+        {
+          "type": "stat",
+          "title": "Pod Restarts 1h",
+          "gridPos": { "x": 16, "y": 0, "w": 4, "h": 4 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "sum(increase(kube_pod_container_status_restarts_total[1h])) or vector(0)",
+              "legendFormat": "restarts"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+        },
+        {
+          "type": "stat",
+          "title": "Collector Refused Spans/s",
+          "gridPos": { "x": 20, "y": 0, "w": 4, "h": 4 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "sum(rate(otelcol_receiver_refused_spans[5m])) or vector(0)",
+              "legendFormat": "spans/s"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] }
+        },
+        {
+          "type": "timeseries",
+          "title": "Host CPU Busy",
+          "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{job=\"linux-hosts\",mode=\"idle\"}[5m])))",
+              "legendFormat": "{{instance}}"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] }
+        },
+        {
+          "type": "timeseries",
+          "title": "Host Memory Used",
+          "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "100 * (1 - (node_memory_MemAvailable_bytes{job=\"linux-hosts\"} / node_memory_MemTotal_bytes{job=\"linux-hosts\"}))",
+              "legendFormat": "{{instance}}"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] }
+        },
+        {
+          "type": "timeseries",
+          "title": "Deployment Availability",
+          "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "kube_deployment_status_replicas_available",
+              "legendFormat": "{{namespace}}/{{deployment}}"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+        },
+        {
+          "type": "timeseries",
+          "title": "Pod Restarts",
+          "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "increase(kube_pod_container_status_restarts_total[1h])",
+              "legendFormat": "{{namespace}}/{{pod}}"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+        }
+      ]
+    }
+  telemetry-pipeline.json: |
+    {
+      "uid": "telemetry-pipeline",
+      "title": "Telemetry Pipeline",
+      "tags": ["homelab", "opentelemetry"],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "time": { "from": "now-6h", "to": "now" },
+      "panels": [
+        {
+          "type": "timeseries",
+          "title": "Collector Accepted Spans",
+          "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "sum by (receiver, transport) (rate(otelcol_receiver_accepted_spans[5m]))",
+              "legendFormat": "{{receiver}} {{transport}}"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] }
+        },
+        {
+          "type": "timeseries",
+          "title": "Collector Refused Spans",
+          "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "sum by (receiver, transport) (rate(otelcol_receiver_refused_spans[5m]))",
+              "legendFormat": "{{receiver}} {{transport}}"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] }
+        },
+        {
+          "type": "timeseries",
+          "title": "Collector Export Failures",
+          "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "sum by (exporter) (rate(otelcol_exporter_send_failed_spans[5m]))",
+              "legendFormat": "{{exporter}}"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] }
+        },
+        {
+          "type": "timeseries",
+          "title": "Collector Memory RSS",
+          "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "otelcol_process_memory_rss",
+              "legendFormat": "collector"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] }
+        },
+        {
+          "type": "timeseries",
+          "title": "Tempo Metrics",
+          "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "up{job=\"observability-services\"}",
+              "legendFormat": "{{instance}} up"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+        },
+        {
+          "type": "timeseries",
+          "title": "Prometheus Scrape Health",
+          "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "up",
+              "legendFormat": "{{job}} {{instance}}"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+        }
+      ]
+    }
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -167,6 +401,12 @@ spec:
             - name: provisioning
               mountPath: /var/lib/grafana/dashboards/linux-hosts.json
               subPath: linux-hosts.json
+            - name: provisioning
+              mountPath: /var/lib/grafana/dashboards/homelab-overview.json
+              subPath: homelab-overview.json
+            - name: provisioning
+              mountPath: /var/lib/grafana/dashboards/telemetry-pipeline.json
+              subPath: telemetry-pipeline.json
       volumes:
         - name: data
           persistentVolumeClaim:

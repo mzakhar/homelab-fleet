@@ -9,6 +9,9 @@ data:
       scrape_interval: 15s
       evaluation_interval: 15s
 
+    rule_files:
+      - /etc/prometheus/rules/*.yml
+
     scrape_configs:
       - job_name: prometheus
         static_configs:
@@ -38,6 +41,131 @@ data:
         static_configs:
           - targets:
               - "tempo:3200"
+
+      - job_name: kube-state-metrics
+        static_configs:
+          - targets:
+              - "kube-state-metrics:8080"
+
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: "true"
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: "(.+)"
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: "([^:]+)(?::\\d+)?;(\\d+)"
+            replacement: "$1:$2"
+            target_label: __address__
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+            action: replace
+            target_label: app
+
+  alert-rules.yml: |
+    groups:
+      - name: homelab.rules
+        rules:
+          - alert: PrometheusTargetDown
+            expr: up == 0
+            for: 2m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Prometheus target down"
+              description: "{{ $labels.job }} target {{ $labels.instance }} has been down for more than 2 minutes."
+
+          - alert: NodeFilesystemAlmostFull
+            expr: 100 * (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) > 85
+            for: 10m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Node filesystem almost full"
+              description: "{{ $labels.instance }} {{ $labels.mountpoint }} is above 85% used."
+
+          - alert: NodeFilesystemCritical
+            expr: 100 * (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) > 95
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Node filesystem critical"
+              description: "{{ $labels.instance }} {{ $labels.mountpoint }} is above 95% used."
+
+          - alert: KubernetesDeploymentUnavailable
+            expr: kube_deployment_status_replicas_unavailable > 0
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Kubernetes deployment unavailable"
+              description: "{{ $labels.namespace }}/{{ $labels.deployment }} has unavailable replicas."
+
+          - alert: KubernetesPodRestartSpike
+            expr: increase(kube_pod_container_status_restarts_total[15m]) > 3
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Pod restart spike"
+              description: "{{ $labels.namespace }}/{{ $labels.pod }} restarted more than 3 times in 15 minutes."
+
+          - alert: OtelCollectorRefusedTelemetry
+            expr: sum(rate(otelcol_receiver_refused_spans[5m])) + sum(rate(otelcol_receiver_refused_metric_points[5m])) > 0
+            for: 2m
+            labels:
+              severity: warning
+            annotations:
+              summary: "OpenTelemetry Collector refusing telemetry"
+              description: "Collector refused spans or metric points in the last 5 minutes."
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: observability
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - services
+      - endpoints
+      - pods
+    verbs: [get, list, watch]
+  - apiGroups: ["networking.k8s.io"]
+    resources:
+      - ingresses
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus
+subjects:
+  - kind: ServiceAccount
+    name: prometheus
+    namespace: observability
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -57,6 +185,8 @@ spec:
       labels:
         app.kubernetes.io/name: prometheus
     spec:
+      serviceAccountName: prometheus
+      automountServiceAccountToken: true
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534
@@ -102,6 +232,9 @@ spec:
             - name: config
               mountPath: /etc/prometheus/prometheus.yml
               subPath: prometheus.yml
+            - name: config
+              mountPath: /etc/prometheus/rules/alert-rules.yml
+              subPath: alert-rules.yml
             - name: data
               mountPath: /prometheus
             - name: tmp

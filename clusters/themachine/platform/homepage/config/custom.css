@@ -109,6 +109,9 @@ button,
 #themachine,
 #homeserver,
 #fleet-sync,
+#alerts,
+#cluster-pressure,
+#telemetry-intake,
 #flux,
 #cloudflare-tunnel,
 #jellyfin,
@@ -144,6 +147,9 @@ button,
 #themachine::before,
 #homeserver::before,
 #fleet-sync::before,
+#alerts::before,
+#cluster-pressure::before,
+#telemetry-intake::before,
 #flux::before,
 #cloudflare-tunnel::before,
 #jellyfin::before,
@@ -183,6 +189,9 @@ button,
 #themachine::after,
 #homeserver::after,
 #fleet-sync::after,
+#alerts::after,
+#cluster-pressure::after,
+#telemetry-intake::after,
 #flux::after,
 #cloudflare-tunnel::after,
 #jellyfin::after,
@@ -224,6 +233,9 @@ button,
 #themachine { --glow-cyan: rgba(84, 104, 255, 0.34); }
 #homeserver { --glow-cyan: rgba(118, 224, 183, 0.34); }
 #fleet-sync { --glow-cyan: rgba(84, 104, 255, 0.34); }
+#alerts { --glow-cyan: rgba(248, 113, 113, 0.34); }
+#cluster-pressure { --glow-cyan: rgba(245, 184, 80, 0.34); }
+#telemetry-intake { --glow-cyan: rgba(245, 168, 0, 0.34); }
 #fleet-sync:has([class*="red"]),
 #fleet-sync:has([class*="rose"]) {
   --glow-cyan: rgba(248, 113, 113, 0.58);
