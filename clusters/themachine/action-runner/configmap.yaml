@@ -217,6 +217,14 @@ data:
                 params = urllib.parse.parse_qs(parsed.query)
                 if parsed.path == "/healthz":
                     return json_response(self, 200, {"ok": True})
+                if parsed.path == "/flux/health":
+                    status = flux_status()
+                    http_status = 200 if status["failCount"] == 0 and status["sync"] == "synced" else 503
+                    return json_response(self, http_status, {
+                        "ok": http_status == 200,
+                        "sync": status["sync"],
+                        "failCount": status["failCount"],
+                    })
                 if parsed.path == "/flux/status":
                     return json_response(self, 200, flux_status())
                 if parsed.path == "/":
