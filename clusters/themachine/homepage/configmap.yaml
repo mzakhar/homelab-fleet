@@ -702,10 +702,8 @@ data:
         0 18px 42px rgba(0, 0, 0, 0.34),
         0 0 34px rgba(248, 113, 113, 0.16) !important;
     }
-    #fleet-sync:has([class*="red"]) div[class*="grid"] > div:nth-child(4),
-    #fleet-sync:has([class*="rose"]) div[class*="grid"] > div:nth-child(4),
-    #fleet-sync:has([class*="red"]) div[class*="flex"] > div[class*="rounded"]:nth-child(4),
-    #fleet-sync:has([class*="rose"]) div[class*="flex"] > div[class*="rounded"]:nth-child(4) {
+    #fleet-sync div[class*="grid"] > div:nth-child(4),
+    #fleet-sync div[class*="flex"] > div[class*="rounded"]:nth-child(4) {
       background: linear-gradient(180deg, rgba(248, 113, 113, 0.18), rgba(127, 29, 29, 0.24)) !important;
       border-color: rgba(248, 113, 113, 0.46) !important;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 0 18px rgba(248, 113, 113, 0.18) !important;
