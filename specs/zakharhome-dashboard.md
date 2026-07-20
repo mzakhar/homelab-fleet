@@ -219,6 +219,7 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 - 2026-07-19: Re-ran Cloudflare Tunnel bootstrap after creating Access protection for `actions.zakharhome.org`; cloudflared loaded ingress version 7 and external request from `themachine` returned Cloudflare Access `302`.
 - 2026-07-19: Renamed Homepage `Home` section to `Media`, moved Pi-hole into `Infrastructure`, and moved non-actionable Flux/Cloudflare cards out of `Infrastructure` into `Docs`.
 - 2026-07-19: Added action-runner `/flux/status` read endpoint and Homepage `Fleet Sync` card using internal `customapi`; card shows cluster repo pickup/apply status instead of a non-actionable Flux link.
+- 2026-07-19: Added subtle red visual state for Fleet Sync when the Homepage card reports a non-zero failed Flux object count.
 
 ## Open Questions
 

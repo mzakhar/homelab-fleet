@@ -463,7 +463,24 @@ data:
 
   docker.yaml: ""
   proxmox.yaml: ""
-  custom.js: ""
+  custom.js: |
+    (() => {
+      const updateFleetSyncState = () => {
+        const card = document.querySelector("#fleet-sync");
+        if (!card) return;
+        const text = card.textContent || "";
+        const match = text.match(/Failed\s+(\d+)/i);
+        const failed = match ? Number.parseInt(match[1], 10) : 0;
+        card.classList.toggle("fleet-sync-warning", Number.isFinite(failed) && failed > 0);
+      };
+
+      updateFleetSyncState();
+      new MutationObserver(updateFleetSyncState).observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
+    })();
   custom.css: |
     :root {
       --glass-bg: rgba(8, 18, 28, 0.34);
@@ -691,6 +708,15 @@ data:
     #themachine { --glow-cyan: rgba(84, 104, 255, 0.34); }
     #homeserver { --glow-cyan: rgba(118, 224, 183, 0.34); }
     #fleet-sync { --glow-cyan: rgba(84, 104, 255, 0.34); }
+    #fleet-sync.fleet-sync-warning {
+      --glow-cyan: rgba(248, 113, 113, 0.58);
+      --glow-rose: rgba(251, 113, 133, 0.52);
+      border-color: rgba(248, 113, 113, 0.34) !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.09),
+        0 18px 42px rgba(0, 0, 0, 0.34),
+        0 0 34px rgba(248, 113, 113, 0.16) !important;
+    }
     #plex { --glow-cyan: rgba(229, 160, 13, 0.34); }
     #basement-moode,
     #console-moode,
