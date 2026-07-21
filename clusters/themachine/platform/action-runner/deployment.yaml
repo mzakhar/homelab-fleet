@@ -13,6 +13,8 @@ spec:
       app.kubernetes.io/name: action-runner
   template:
     metadata:
+      annotations:
+        homelab.zakharhome.org/action-runner-config-version: "2026-07-21-observability-1"
       labels:
         app.kubernetes.io/name: action-runner
     spec:

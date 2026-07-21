@@ -14,6 +14,15 @@ TOKEN = open("/var/run/secrets/kubernetes.io/serviceaccount/token", encoding="ut
 CA = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 CTX = ssl.create_default_context(cafile=CA)
 AUDIT = []
+ALERT_NOTIFICATIONS = []
+UPTIME_KUMA_STATUS_URL = os.getenv(
+    "UPTIME_KUMA_STATUS_URL",
+    "http://uptime-kuma.observability.svc.cluster.local:3001/api/status-page/homelab",
+)
+UPTIME_KUMA_HEARTBEAT_URL = os.getenv(
+    "UPTIME_KUMA_HEARTBEAT_URL",
+    "http://uptime-kuma.observability.svc.cluster.local:3001/api/status-page/heartbeat/homelab",
+)
 
 ALLOWED_DEPLOYMENTS = {
     "homepage": ("homepage", "homepage"),
@@ -74,12 +83,29 @@ def json_response(handler, status, body):
     handler.end_headers()
     handler.wfile.write(payload)
 
+def text_response(handler, status, body, content_type="text/plain; version=0.0.4; charset=utf-8"):
+    payload = body.encode("utf-8")
+    handler.send_response(status)
+    handler.send_header("content-type", content_type)
+    handler.send_header("cache-control", "no-store")
+    handler.send_header("content-length", str(len(payload)))
+    handler.end_headers()
+    handler.wfile.write(payload)
+
 def actor(headers):
     return (headers.get("cf-access-authenticated-user-email") or headers.get("x-authenticated-user-email") or "").lower()
 
 def record(entry):
     AUDIT.insert(0, {"ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), **entry})
     del AUDIT[100:]
+
+def fetch_json(url, timeout=5):
+    req = urllib.request.Request(url, headers={"Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as res:
+        return json.loads(res.read().decode("utf-8", errors="replace"))
+
+def prom_label(value):
+    return str(value).replace("\\", "\\\\").replace("\n", "\\n").replace('"', '\\"')
 
 def condition_status(item, condition_type="Ready"):
     for condition in item.get("status", {}).get("conditions", []):
@@ -175,6 +201,70 @@ def moode_status(target):
             "queue": "-",
         }
 
+def uptime_kuma_status():
+    status = fetch_json(UPTIME_KUMA_STATUS_URL)
+    heartbeat = fetch_json(UPTIME_KUMA_HEARTBEAT_URL)
+    latest = {}
+    for monitor_id, samples in heartbeat.get("heartbeatList", {}).items():
+        if samples:
+            latest[str(monitor_id)] = samples[-1]
+
+    monitors = []
+    for group in status.get("publicGroupList", []):
+        for monitor in group.get("monitorList", []):
+            monitor_id = str(monitor.get("id"))
+            sample = latest.get(monitor_id, {})
+            up = sample.get("status") == 1
+            monitors.append({
+                "id": monitor_id,
+                "name": monitor.get("name") or monitor_id,
+                "group": group.get("name") or "Ungrouped",
+                "up": up,
+                "status": sample.get("status", 0),
+                "time": sample.get("time"),
+                "msg": sample.get("msg") or "",
+                "ping": sample.get("ping"),
+            })
+
+    down = [monitor for monitor in monitors if not monitor["up"]]
+    return {
+        "ok": True,
+        "up": len(monitors) - len(down),
+        "down": len(down),
+        "monitorCount": len(monitors),
+        "worstMonitor": down[0]["name"] if down else None,
+        "monitors": monitors,
+    }
+
+def metrics_text():
+    lines = [
+        "# HELP action_runner_alert_notifications Alertmanager notifications received by action-runner.",
+        "# TYPE action_runner_alert_notifications gauge",
+        f"action_runner_alert_notifications {len(ALERT_NOTIFICATIONS)}",
+        "# HELP uptime_kuma_status_page_up Whether action-runner can read the Uptime Kuma status page.",
+        "# TYPE uptime_kuma_status_page_up gauge",
+    ]
+    try:
+        kuma = uptime_kuma_status()
+        lines.append("uptime_kuma_status_page_up 1")
+        lines.extend([
+            "# HELP uptime_kuma_monitors_down Uptime Kuma monitors currently down.",
+            "# TYPE uptime_kuma_monitors_down gauge",
+            f"uptime_kuma_monitors_down {kuma['down']}",
+            "# HELP uptime_kuma_monitor_up Latest Uptime Kuma monitor state, 1 up and 0 down.",
+            "# TYPE uptime_kuma_monitor_up gauge",
+        ])
+        for monitor in kuma["monitors"]:
+            labels = (
+                f'monitor_id="{prom_label(monitor["id"])}",'
+                f'monitor_name="{prom_label(monitor["name"])}",'
+                f'group="{prom_label(monitor["group"])}"'
+            )
+            lines.append(f"uptime_kuma_monitor_up{{{labels}}} {1 if monitor['up'] else 0}")
+    except Exception:
+        lines.append("uptime_kuma_status_page_up 0")
+    return "\n".join(lines) + "\n"
+
 def shell_html():
     deployments = "".join(f"<option value='{html.escape(k)}'>{html.escape(k)}</option>" for k in ALLOWED_DEPLOYMENTS)
     reconcilers = "".join(f"<option value='{html.escape(k)}'>{html.escape(k)}</option>" for k in ALLOWED_RECONCILERS)
@@ -243,6 +333,8 @@ class Handler(BaseHTTPRequestHandler):
             params = urllib.parse.parse_qs(parsed.query)
             if parsed.path == "/healthz":
                 return json_response(self, 200, {"ok": True})
+            if parsed.path == "/metrics":
+                return text_response(self, 200, metrics_text())
             if parsed.path == "/flux/health":
                 status = flux_status()
                 http_status = 200 if status["failCount"] == 0 and status["sync"] == "synced" else 503
@@ -256,6 +348,8 @@ class Handler(BaseHTTPRequestHandler):
             if parsed.path == "/moode/status":
                 target = params.get("target", [""])[0]
                 return json_response(self, 200, moode_status(target))
+            if parsed.path == "/kuma/status":
+                return json_response(self, 200, uptime_kuma_status())
             if parsed.path == "/":
                 if not self.admin():
                     return
@@ -265,6 +359,8 @@ class Handler(BaseHTTPRequestHandler):
                 return
             if parsed.path == "/audit":
                 return json_response(self, 200, {"ok": True, "audit": AUDIT})
+            if parsed.path == "/alerts/status":
+                return json_response(self, 200, {"ok": True, "notifications": ALERT_NOTIFICATIONS})
             if parsed.path == "/pods":
                 pods = kube("GET", "/api/v1/pods")
                 rows = [{
@@ -296,6 +392,24 @@ class Handler(BaseHTTPRequestHandler):
         try:
             parsed = urllib.parse.urlparse(self.path)
             params = urllib.parse.parse_qs(parsed.query)
+            if parsed.path == "/alerts/webhook":
+                length = int(self.headers.get("content-length", "0") or "0")
+                body = self.rfile.read(length).decode("utf-8", errors="replace") if length else "{}"
+                try:
+                    payload = json.loads(body)
+                except json.JSONDecodeError:
+                    payload = {"raw": body}
+                ALERT_NOTIFICATIONS.insert(0, {
+                    "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                    "status": payload.get("status"),
+                    "alerts": [{
+                        "status": alert.get("status"),
+                        "labels": alert.get("labels", {}),
+                        "annotations": alert.get("annotations", {}),
+                    } for alert in payload.get("alerts", [])],
+                })
+                del ALERT_NOTIFICATIONS[50:]
+                return json_response(self, 200, {"ok": True})
             email = self.admin()
             if not email:
                 return

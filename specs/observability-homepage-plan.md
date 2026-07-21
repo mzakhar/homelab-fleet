@@ -1,7 +1,7 @@
 # Observability Stack and Homepage Plan
 
-Status: implementation started
-Last updated: 2026-07-20
+Status: implementation in progress
+Last updated: 2026-07-21
 
 ## Goal
 
@@ -33,7 +33,7 @@ Current gaps:
 - Grafana only has a host dashboard; no app/service RED dashboard.
 - Prometheus has no Kubernetes pod/service scrape discovery.
 - Collector receives traces/metrics, but hosted apps are not yet consistently instrumented.
-- No alert rules or notification routing are source-controlled.
+- Alert rules and first-pass notification routing are source-controlled.
 - No logs backend yet; log correlation should wait until a Loki or equivalent path exists.
 
 ## Design Principles
@@ -118,7 +118,7 @@ Pipeline health dashboard:
 - [x] Add Prometheus-backed Homepage widgets for collector/Tempo health.
 - [x] Add Homepage alert count backed by Prometheus firing alert state.
 - [x] Move host, fleet sync, alert, cluster pressure, and telemetry intake cards into the main Observability row.
-- [ ] Verify Homepage card rendering after Flux deploy.
+- [x] Verify Homepage card rendering after Flux deploy.
 
 ### Phase 2 - Add Kubernetes Metrics
 
@@ -127,20 +127,20 @@ Pipeline health dashboard:
 - [x] Scrape annotated Kubernetes pods with conservative relabeling.
 - [x] Add Grafana panels for pod restarts, pending pods, and deployment availability.
 - [x] Add Homepage card for cluster pressure: unavailable deployments, restarting pods, pending pods.
-- [ ] Add service endpoint discovery only when services expose intentional Prometheus annotations.
-- [ ] Verify Prometheus targets after Flux deploy.
+- [x] Add service endpoint discovery only when services expose intentional Prometheus annotations.
+- [x] Verify Prometheus targets after Flux deploy.
 
 ### Phase 3 - Add Alerting
 
-- [ ] Deploy Alertmanager or Grafana-managed notification routing.
+- [x] Deploy Alertmanager or Grafana-managed notification routing.
 - [x] Add source-controlled Prometheus rules for:
   - Node filesystem >85% used and >95% critical.
   - Prometheus target down.
   - Kubernetes deployment unavailable.
   - Pod restart spike.
   - Collector refused spans/metrics.
-- [ ] Add Uptime Kuma critical monitor alert integration.
-- [ ] Route notifications to a low-noise target first.
+- [x] Add Uptime Kuma critical monitor alert integration.
+- [x] Route notifications to a low-noise target first.
 - [x] Add Homepage alert count card.
 
 ### Phase 4 - Instrument Hosted Apps
@@ -193,9 +193,22 @@ Progress on 2026-07-20:
 - Validated observability and Homepage kustomize overlays with `kubectl apply --dry-run=client -k`.
 - `promtool` was not installed locally, so Prometheus config/rule semantic validation remains a deploy-time check.
 
+Progress on 2026-07-21:
+
+- Verified live Flux kustomizations, observability pods, Homepage service API, and Prometheus targets on `themachine`.
+- Added Alertmanager with a conservative 12 hour repeat interval and an internal action-runner webhook receiver.
+- Added Prometheus `kubernetes-service-endpoints` discovery for Services that explicitly set `prometheus.io/scrape: "true"`.
+- Added action-runner `/metrics`, `/kuma/status`, `/alerts/webhook`, and `/alerts/status` endpoints.
+- Exposed Uptime Kuma public status page state as Prometheus metrics through action-runner.
+- Added Prometheus alerts for Uptime Kuma status page read failure and individual Kuma monitor down state.
+- Verified action-runner service endpoint scrape is up, `uptime_kuma_status_page_up` is `1`, `uptime_kuma_monitors_down` is `0`, and Prometheus firing alert count returned to `0` after rollout.
+- Cleaned accidental local Rancher Desktop namespaces created during a kube-context mismatch; live changes were then applied through SSH on `themachine`.
+
 ## Decisions
 
 - 2026-07-20: Keep Homepage as triage and Grafana as investigation.
 - 2026-07-20: Prioritize Kubernetes metrics and alert visibility before deeper app instrumentation.
 - 2026-07-20: Defer logs until there is a backend and a concrete use case.
 - 2026-07-20: Use kube-state-metrics for Kubernetes health instead of broad pod scraping. Pod scraping is opt-in through annotations.
+- 2026-07-21: Use Alertmanager to route first-pass notifications to action-runner as a low-noise internal receiver before adding push/email targets.
+- 2026-07-21: Bridge Uptime Kuma monitor state into Prometheus through action-runner metrics instead of depending on hand-managed Uptime Kuma notification settings.

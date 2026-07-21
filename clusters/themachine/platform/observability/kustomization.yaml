@@ -4,6 +4,7 @@ resources:
   - namespace.yaml
   - kube-state-metrics.yaml
   - storage.yaml
+  - alertmanager.yaml
   - prometheus.yaml
   - tempo.yaml
   - otel-collector.yaml
