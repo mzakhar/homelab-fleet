@@ -32,6 +32,12 @@ ALLOWED_RECONCILERS = {
     "synth": ("kustomize.toolkit.fluxcd.io", "v1", "kustomizations", "flux-system", "synth"),
 }
 
+ALLOWED_MOODE = {
+    "livingroom": ("Living room", "192.168.1.46"),
+    "basement": ("Basement", "192.168.1.40"),
+    "console": ("Console", "192.168.1.28"),
+}
+
 def kube(method, path, body=None, content_type="application/json"):
     data = json.dumps(body).encode("utf-8") if body is not None else None
     req = urllib.request.Request(
@@ -142,6 +148,33 @@ def flux_status():
         "suspended": suspended,
     }
 
+def moode_status(target):
+    item = ALLOWED_MOODE.get(target)
+    if not item:
+        return {"ok": False, "error": "target not allowed", "state": "unknown", "volume": "-", "queue": "-"}
+
+    name, ip = item
+    url = f"http://{ip}/engine-mpd.php"
+    try:
+        req = urllib.request.Request(url, headers={"Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=2) as res:
+            data = json.loads(res.read().decode("utf-8", errors="replace"))
+        return {
+            "ok": True,
+            "name": name,
+            "state": data.get("state") or "unknown",
+            "volume": data.get("volume") or "0",
+            "queue": data.get("playlistlength") or "0",
+        }
+    except Exception:
+        return {
+            "ok": True,
+            "name": name,
+            "state": "off",
+            "volume": "-",
+            "queue": "-",
+        }
+
 def shell_html():
     deployments = "".join(f"<option value='{html.escape(k)}'>{html.escape(k)}</option>" for k in ALLOWED_DEPLOYMENTS)
     reconcilers = "".join(f"<option value='{html.escape(k)}'>{html.escape(k)}</option>" for k in ALLOWED_RECONCILERS)
@@ -220,6 +253,9 @@ class Handler(BaseHTTPRequestHandler):
                 })
             if parsed.path == "/flux/status":
                 return json_response(self, 200, flux_status())
+            if parsed.path == "/moode/status":
+                target = params.get("target", [""])[0]
+                return json_response(self, 200, moode_status(target))
             if parsed.path == "/":
                 if not self.admin():
                     return

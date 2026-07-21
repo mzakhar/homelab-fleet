@@ -231,6 +231,7 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 - 2026-07-20: Added Home Assistant as a `themachine` platform workload with persistent `/config`, host networking for LAN discovery, an internal service, a `homeassistant.zakharhome.org` ingress, tunnel bootstrap registration, and a Homepage card.
 - 2026-07-20: Fixed Home Assistant reverse-proxy access by seeding `http.use_x_forwarded_for` and trusted Traefik/service CIDRs into `/config/configuration.yaml`; ingress now reaches onboarding instead of returning `400`.
 - 2026-07-20: Moved Homepage Observability and Actions above GitHub in dashboard order; replaced GitHub repo star counts with open PR counts after rotating Homepage to a fine-grained GitHub token with private repo PR/issue read access.
+- 2026-07-20: Routed moOde Homepage widgets through an allowlisted action-runner read endpoint so powered-off speakers show a calm `off` state instead of a Homepage API error.
 
 ## Open Questions
 

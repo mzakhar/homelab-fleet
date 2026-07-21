@@ -61,17 +61,17 @@
         description: Living room audio endpoint
         widget:
           type: customapi
-          url: http://192.168.1.46/engine-mpd.php
+          url: http://action-runner.action-runner.svc.cluster.local:8080/moode/status?target=livingroom
           mappings:
             - field: state
               label: State
               format: text
             - field: volume
               label: Vol
-              format: number
-            - field: playlistlength
+              format: text
+            - field: queue
               label: Queue
-              format: number
+              format: text
     - Basement moOde:
         id: basement-moode
         icon: mdi-speaker-multiple
@@ -79,17 +79,17 @@
         description: Basement audio endpoint
         widget:
           type: customapi
-          url: http://192.168.1.40/engine-mpd.php
+          url: http://action-runner.action-runner.svc.cluster.local:8080/moode/status?target=basement
           mappings:
             - field: state
               label: State
               format: text
             - field: volume
               label: Vol
-              format: number
-            - field: playlistlength
+              format: text
+            - field: queue
               label: Queue
-              format: number
+              format: text
     - Console moOde:
         id: console-moode
         icon: mdi-speaker-multiple
@@ -97,17 +97,17 @@
         description: Console audio endpoint
         widget:
           type: customapi
-          url: http://192.168.1.28/engine-mpd.php
+          url: http://action-runner.action-runner.svc.cluster.local:8080/moode/status?target=console
           mappings:
             - field: state
               label: State
               format: text
             - field: volume
               label: Vol
-              format: number
-            - field: playlistlength
+              format: text
+            - field: queue
               label: Queue
-              format: number
+              format: text
 
 - Observability:
     - Service Status:
