@@ -149,9 +149,9 @@ Pipeline health dashboard:
 - [x] Wire VS Book App locally with Node.js HTTP/Express auto-instrumentation,
   OTLP trace/metric export, stable HTTP semantic conventions, and explicit
   `service.name=vs-book-app` identity.
-- [ ] Commit/push VS Book App changes, let its image workflow publish, update
+- [x] Commit/push VS Book App changes, let its image workflow publish, update
   the pinned deployment image, and verify the Flux rollout.
-- [ ] Verify VS Book App traces in Tempo and RED metrics in Prometheus against
+- [x] Verify VS Book App traces in Tempo and RED metrics in Prometheus against
   real cluster traffic.
 - [ ] Finish Clean Mail instrumentation in its app session and apply the same
   end-to-end checks.
@@ -215,12 +215,23 @@ Progress on 2026-07-21:
 - Cleaned accidental local Rancher Desktop namespaces created during a kube-context mismatch; live changes were then applied through SSH on `themachine`.
 - Selected Clean Mail and VS Book App as the first hosted-app instrumentation
   pair.
-- Wired VS Book App locally with OpenTelemetry Node.js auto-instrumentation,
+- Wired VS Book App with OpenTelemetry Node.js auto-instrumentation,
   OTLP/HTTP trace and metric exporters, stable HTTP semantic conventions, and
   production collector settings in its Kubernetes Deployment.
 - Verified the VS Book App build, rendered Kubernetes manifests, and ran a
   local OTLP smoke test proving `vs-book-app` HTTP traces and
-  `http.server.request.duration` metrics export. GitOps rollout remains pending.
+  `http.server.request.duration` metrics export.
+- Merged VS Book App instrumentation PR #45 and image-pin PR #46, published
+  image digest
+  `sha256:8abfd888d8e9c4cace95efaae940878c098cb43c1d9357efc716584059d1074f`,
+  reconciled Flux, and verified the live workload health.
+- Added a selective Collector metric transform for `service.name`,
+  `service.namespace`, and `deployment.environment.name`. This enables
+  per-service Prometheus queries without promoting high-cardinality process or
+  instance resource attributes into labels.
+- Verified live Tempo traces named `GET /api/health` under `vs-book-app` and
+  Prometheus `http_server_request_duration_seconds_count` series labeled by
+  service, route, method, status, namespace, and environment.
 
 ## Decisions
 
@@ -233,3 +244,7 @@ Progress on 2026-07-21:
 - 2026-07-21: Use Clean Mail and VS Book App as the first application
   observability targets. Start with HTTP traces and RED metrics; defer logs,
   sampling, and custom business metrics.
+- 2026-07-21: Copy only stable, low-cardinality app identity resource
+  attributes into metric datapoints before Prometheus export. Do not enable
+  blanket resource-to-telemetry conversion because it can promote PID, host,
+  process, and instance values into labels.
