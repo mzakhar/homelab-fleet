@@ -300,17 +300,31 @@
         description: Private email client repo
         widget:
           type: customapi
-          url: https://api.github.com/repos/mzakhar/gmail-frontend-replacement
+          url: https://api.github.com/graphql
+          method: POST
           headers:
             Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
             Accept: application/vnd.github+json
             X-GitHub-Api-Version: "2022-11-28"
             User-Agent: homepage-zakharhome
+            Content-Type: application/json
+          requestBody:
+            query: |
+              query {
+                repository(owner: "mzakhar", name: "gmail-frontend-replacement") {
+                  issues(states: OPEN) { totalCount }
+                  pullRequests(states: OPEN) { totalCount }
+                  pushedAt
+                }
+              }
           mappings:
-            - field: open_issues_count
+            - field: data.repository.pullRequests.totalCount
+              label: PRs
+              format: number
+            - field: data.repository.issues.totalCount
               label: Issues
               format: number
-            - field: pushed_at
+            - field: data.repository.pushedAt
               label: Pushed
               format: relativeDate
     - Clean Mail Android:
@@ -320,17 +334,31 @@
         description: Private Android email client
         widget:
           type: customapi
-          url: https://api.github.com/repos/mzakhar/gmail-android-frontend
+          url: https://api.github.com/graphql
+          method: POST
           headers:
             Authorization: Bearer {{HOMEPAGE_VAR_GITHUB_TOKEN}}
             Accept: application/vnd.github+json
             X-GitHub-Api-Version: "2022-11-28"
             User-Agent: homepage-zakharhome
+            Content-Type: application/json
+          requestBody:
+            query: |
+              query {
+                repository(owner: "mzakhar", name: "gmail-android-frontend") {
+                  issues(states: OPEN) { totalCount }
+                  pullRequests(states: OPEN) { totalCount }
+                  pushedAt
+                }
+              }
           mappings:
-            - field: open_issues_count
+            - field: data.repository.pullRequests.totalCount
+              label: PRs
+              format: number
+            - field: data.repository.issues.totalCount
               label: Issues
               format: number
-            - field: pushed_at
+            - field: data.repository.pushedAt
               label: Pushed
               format: relativeDate
     - VS Book App:
