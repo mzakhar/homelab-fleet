@@ -145,6 +145,16 @@ Pipeline health dashboard:
 
 ### Phase 4 - Instrument Hosted Apps
 
+- First target pair: Clean Mail and VS Book App. Either may land first.
+- [x] Wire VS Book App locally with Node.js HTTP/Express auto-instrumentation,
+  OTLP trace/metric export, stable HTTP semantic conventions, and explicit
+  `service.name=vs-book-app` identity.
+- [ ] Commit/push VS Book App changes, let its image workflow publish, update
+  the pinned deployment image, and verify the Flux rollout.
+- [ ] Verify VS Book App traces in Tempo and RED metrics in Prometheus against
+  real cluster traffic.
+- [ ] Finish Clean Mail instrumentation in its app session and apply the same
+  end-to-end checks.
 - Add app auto-instrumentation where practical:
   - HTTP server spans and `http.server.request.duration`.
   - HTTP client spans for external calls.
@@ -203,6 +213,14 @@ Progress on 2026-07-21:
 - Added Prometheus alerts for Uptime Kuma status page read failure and individual Kuma monitor down state.
 - Verified action-runner service endpoint scrape is up, `uptime_kuma_status_page_up` is `1`, `uptime_kuma_monitors_down` is `0`, and Prometheus firing alert count returned to `0` after rollout.
 - Cleaned accidental local Rancher Desktop namespaces created during a kube-context mismatch; live changes were then applied through SSH on `themachine`.
+- Selected Clean Mail and VS Book App as the first hosted-app instrumentation
+  pair.
+- Wired VS Book App locally with OpenTelemetry Node.js auto-instrumentation,
+  OTLP/HTTP trace and metric exporters, stable HTTP semantic conventions, and
+  production collector settings in its Kubernetes Deployment.
+- Verified the VS Book App build, rendered Kubernetes manifests, and ran a
+  local OTLP smoke test proving `vs-book-app` HTTP traces and
+  `http.server.request.duration` metrics export. GitOps rollout remains pending.
 
 ## Decisions
 
@@ -212,3 +230,6 @@ Progress on 2026-07-21:
 - 2026-07-20: Use kube-state-metrics for Kubernetes health instead of broad pod scraping. Pod scraping is opt-in through annotations.
 - 2026-07-21: Use Alertmanager to route first-pass notifications to action-runner as a low-noise internal receiver before adding push/email targets.
 - 2026-07-21: Bridge Uptime Kuma monitor state into Prometheus through action-runner metrics instead of depending on hand-managed Uptime Kuma notification settings.
+- 2026-07-21: Use Clean Mail and VS Book App as the first application
+  observability targets. Start with HTTP traces and RED metrics; defer logs,
+  sampling, and custom business metrics.

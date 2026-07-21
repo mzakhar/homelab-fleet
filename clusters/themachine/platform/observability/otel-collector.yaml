@@ -17,6 +17,14 @@ data:
       memory_limiter:
         check_interval: 1s
         limit_mib: 384
+      transform/app_metric_resource_labels:
+        error_mode: ignore
+        metric_statements:
+          - context: datapoint
+            statements:
+              - set(attributes["service.name"], resource.attributes["service.name"]) where resource.attributes["service.name"] != nil
+              - set(attributes["service.namespace"], resource.attributes["service.namespace"]) where resource.attributes["service.namespace"] != nil
+              - set(attributes["deployment.environment.name"], resource.attributes["deployment.environment.name"]) where resource.attributes["deployment.environment.name"] != nil
       batch: {}
 
     extensions:
@@ -46,7 +54,7 @@ data:
           exporters: [otlp/tempo]
         metrics:
           receivers: [otlp]
-          processors: [memory_limiter, batch]
+          processors: [memory_limiter, transform/app_metric_resource_labels, batch]
           exporters: [prometheus]
         logs:
           receivers: [otlp]
