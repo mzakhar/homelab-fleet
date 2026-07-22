@@ -124,6 +124,13 @@ def short_revision(revision):
     sha = revision.rsplit(":", 1)[-1] if ":" in revision else revision
     return sha[:7]
 
+def latest_reconciliation(item):
+    history = item.get("status", {}).get("history", [])
+    reconciled = [entry for entry in history if entry.get("lastReconciled")]
+    if not reconciled:
+        return {}
+    return max(reconciled, key=lambda entry: entry["lastReconciled"])
+
 def flux_status():
     source = kube("GET", "/apis/source.toolkit.fluxcd.io/v1/namespaces/flux-system/gitrepositories/flux-system")
     fleet = kube("GET", "/apis/kustomize.toolkit.fluxcd.io/v1/namespaces/flux-system/kustomizations/flux-system")
@@ -132,6 +139,7 @@ def flux_status():
 
     source_revision = source.get("status", {}).get("artifact", {}).get("revision")
     applied_revision = fleet.get("status", {}).get("lastAppliedRevision")
+    last_run = latest_reconciliation(fleet)
     source_ready = condition_status(source)
     fleet_ready = condition_status(fleet)
     items = sources.get("items", []) + kustomizations.get("items", [])
@@ -161,6 +169,9 @@ def flux_status():
         "ok": True,
         "repo": short_revision(source_revision),
         "applied": short_revision(applied_revision),
+        "lastRun": last_run.get("lastReconciled"),
+        "lastRunStatus": last_run.get("lastReconciledStatus"),
+        "lastRunDuration": last_run.get("lastReconciledDuration"),
         "sync": "synced" if synced else "pending",
         "ready": "yes" if source_ready.get("status") == "True" and fleet_ready.get("status") == "True" else "no",
         "readyCount": ready_count,

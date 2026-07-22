@@ -14,6 +14,9 @@ Make the Grafana observability stack and Homepage observability section answer u
 - Can a failing request be followed from metric spike to trace?
 - What needs attention today?
 
+Protected browser route rollout is tracked in
+`specs/cloudflare-dashboard-services.md`.
+
 ## Current Baseline
 
 Deployed on `themachine`:
@@ -51,7 +54,8 @@ Replace the current generic Observability row with direct signal cards:
 ### Overview
 
 - `Service Health`: Uptime Kuma `up`, `down`, `uptime`.
-- `Fleet Sync`: repo revision, applied revision, sync state, failed object count.
+- `Fleet Sync`: repo revision, applied revision, last reconciliation time, sync
+  state, failed object count.
 - `Alerts`: active warning/critical count from Prometheus Alertmanager or a small internal status endpoint.
 
 ### Hosts
@@ -175,6 +179,18 @@ Pipeline health dashboard:
 - Use OTel appender/bridge or promtail/vector-style collection; do not duplicate `trace_id`/`span_id` into custom metric labels.
 - Keep logs behind Cloudflare Access or LAN-only controls.
 
+### Phase 7 - Protected Investigation UIs
+
+- [ ] Publish Grafana at `grafana.zakharhome.org` behind admin-only Cloudflare
+  Access.
+- [ ] Publish Uptime Kuma at `uptime.zakharhome.org` behind admin-only
+  Cloudflare Access.
+- [ ] Publish raw Prometheus UI only if it adds value beyond Grafana.
+- [ ] Keep Tempo, OTel receivers, exporters, kube-state-metrics, and Alertmanager
+  internal.
+- [ ] Change Homepage browser links to protected HTTPS hostnames while keeping
+  widget/API URLs on internal Kubernetes service DNS.
+
 ## First Implementation Slice
 
 Recommended next work:
@@ -248,3 +264,9 @@ Progress on 2026-07-21:
   attributes into metric datapoints before Prometheus export. Do not enable
   blanket resource-to-telemetry conversion because it can promote PID, host,
   process, and instance values into labels.
+- 2026-07-21: Use Access-protected published hostnames for Grafana and Uptime
+  Kuma browser access. Keep telemetry ingestion and storage internals private;
+  make raw Prometheus UI exposure optional.
+- 2026-07-21: Show root Flux Kustomization `lastReconciled` time on Homepage
+  Fleet Sync card so routine scheduled runs remain visible even without a state
+  transition or new Git revision.

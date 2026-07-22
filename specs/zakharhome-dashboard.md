@@ -1,7 +1,7 @@
 # Zakharhome Dashboard Spec
 
 Status: deployed and Access-protected
-Last updated: 2026-07-20
+Last updated: 2026-07-21
 
 ## Goal
 
@@ -13,6 +13,9 @@ Turn `zakharhome.org` from a blank site into a home-lab front door:
 - Reflected in Obsidian Home Lab notes as implementation decisions land.
 
 Detailed observability plan: `specs/observability-homepage-plan.md`.
+
+Detailed protected service routing plan:
+`specs/cloudflare-dashboard-services.md`.
 
 ## Current Context
 
@@ -145,7 +148,8 @@ Deployment ownership:
 - [x] Add private GitHub repo metrics using a Kubernetes Secret-backed token instead of committing a token in Homepage config.
 - [x] Add Jellyfin media widget after API key was provided through normal service UI flow.
 - [x] Add Plex media widget after Plex token is provided through normal service UI flow.
-- [x] Add Flux/Fleet Sync widget showing repo revision, applied revision, sync state, and failure count.
+- [x] Add Flux/Fleet Sync widget showing repo revision, applied revision, last
+  reconciliation time, sync state, and failure count.
 
 Phase 3 note: Homepage can show Kubernetes metrics for the cluster it runs in, but `homeserver` is a separate machine. The canonical host metric path is now node exporter on each Linux box -> Prometheus on `themachine` -> Grafana dashboard. `homeserver` node exporter now runs as a persistent systemd service under user `mzakhar`.
 
@@ -167,6 +171,20 @@ Phase 3 note: Homepage can show Kubernetes metrics for the cluster it runs in, b
   - [x] Clear confirmation for disruptive actions in the action UI
 
 Homepage remains the UI/jump point; action runner owns privileged operations.
+
+### Phase 5 - Protected Service Routes
+
+Detailed design and rollout checklist:
+`specs/cloudflare-dashboard-services.md`.
+
+- [ ] Publish Grafana behind Cloudflare Access first.
+- [ ] Publish Uptime Kuma behind Cloudflare Access.
+- [ ] Decide whether raw Prometheus UI needs remote exposure beyond Grafana.
+- [ ] Pilot living-room moOde through an allowlisted LAN endpoint adapter, then
+  roll out basement and console.
+- [ ] Keep Plex/Jellyfin playback off published Cloudflare CDN hostnames; use
+  Plex native Remote Access or Cloudflare private-network routing for admin use.
+- [x] Keep existing Home Assistant and action-runner tunnel routes.
 
 ## Initial Dashboard Groups
 
@@ -233,6 +251,12 @@ Homepage remains the UI/jump point; action runner owns privileged operations.
 - 2026-07-20: Moved Homepage Observability and Actions above GitHub in dashboard order; replaced GitHub repo star counts with open PR counts after rotating Homepage to a fine-grained GitHub token with private repo PR/issue read access.
 - 2026-07-20: Routed moOde Homepage widgets through an allowlisted action-runner read endpoint so powered-off speakers show a calm `off` state instead of a Homepage API error.
 - 2026-07-21: Continued observability coverage: verified live Homepage observability cards and Prometheus targets, added Alertmanager with internal action-runner webhook routing, added opt-in Service endpoint scraping, exposed Uptime Kuma status page monitor state as Prometheus metrics from action-runner, and added Kuma monitor alerts.
+- 2026-07-21: Added protected service routing plan. Browser-native observability
+  and moOde control UIs use Access-protected published hostnames; Plex/Jellyfin
+  playback stays off Cloudflare's CDN path, with private tunnel routing reserved
+  for admin-device access.
+- 2026-07-21: Added root Flux Kustomization `lastReconciled` time to
+  action-runner status and Homepage Fleet Sync card using relative-time format.
 
 ## Open Questions
 

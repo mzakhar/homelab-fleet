@@ -134,6 +134,9 @@
               label: Repo
             - field: applied
               label: Applied
+            - field: lastRun
+              label: Last Run
+              format: relativeDate
             - field: sync
               label: Sync
             - field: failCount
