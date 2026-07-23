@@ -1,6 +1,6 @@
 # Deploy Authority Migration - Clean Mail
 
-Status: planning, no manifests changed
+Status: planning, no manifests changed — all open questions resolved 2026-07-22
 Last updated: 2026-07-22
 
 ## Goal
@@ -21,9 +21,10 @@ Cross-repo execution plan (repo split, history policy, contract boundary,
 issue routing): vault note `Clean Mail\specs\Repo Split & Coordinated Rename -
 Execution Plan.md`. That note owns the source-repo side; this spec owns only
 fleet-side mechanics — manifest layout, identity rename table, Flux
-cutover, and rollback. As of this writing that vault note does not exist yet;
-confirm it before executing phases below, since it is expected to fix the
-final repo names and history policy this spec assumes.
+cutover, and rollback. That vault note now exists (2026-07-22) with four
+decisions locked (full coordinated rename; clean import + provenance tag;
+deploy authority to homelab-fleet; vault note is canonical execution spec) —
+consistent with this spec's frozen inputs.
 
 Related app-repo spec (decision record, now resolved):
 `docs/specs/15-backend-web-repo-split.md` in `gmail-frontend-replacement`.
@@ -110,7 +111,7 @@ for combined backend+frontend+ingress manifests post-split.
 | GHCR image (frontend) | `ghcr.io/mzakhar/gmail-frontend` | `ghcr.io/mzakhar/clean-mail-frontend` |
 | Namespace | `gmail-app` | `clean-mail` |
 | App secret | `gmail-app-secrets` | `clean-mail-secrets` |
-| Pull secret | `ghcr-pull` | `ghcr-pull` (unchanged — see open questions) |
+| Pull secret | `ghcr-pull` | `clean-mail-ghcr-pull` (decided 2026-07-22) |
 | Flux GitRepository | `gmail-frontend` (name), secretRef `gmail-frontend-github` | removed (see Target Topology) |
 | Flux Kustomization | `gmail-frontend` | `clean-mail` (or removed if folded into root kustomization directly, matching `platform/homepage`) |
 | ServiceAccount | `gmail-backend` | `clean-mail-backend` |
@@ -126,7 +127,7 @@ for combined backend+frontend+ingress manifests post-split.
 | Alembic stamp Job | `gmail-backend-alembic-baseline-stamp` | `clean-mail-backend-alembic-baseline-stamp` |
 | Ingress host (public) | `cleanmail.zakharhome.org` | unchanged (already `cleanmail`, not `gmail`) |
 | Ingress host (mobile) | `cleanmail-api.zakharhome.org` | unchanged |
-| LAN path prefix | `/gmail` | open question — see below |
+| LAN path prefix | `/gmail` | unchanged — legacy path kept (decided 2026-07-22) |
 
 ## Migration Steps
 
@@ -147,8 +148,9 @@ Root kustomization's per-namespace default (`namespace: gmail-app` in
   values from the live `gmail-app-secrets`, do not regenerate
   `TOKEN_ENCRYPTION_KEY`/`SESSION_SECRET_KEY` — regenerating invalidates
   existing sessions and encrypted tokens at rest).
-- `ghcr-pull`: recreate in the `clean-mail` namespace under the same or a
-  renamed name (open question below). Whatever name is chosen, it must
+- `ghcr-pull`: recreate in the `clean-mail` namespace as
+  `clean-mail-ghcr-pull` (decided 2026-07-22 — namespace-scoped secret must
+  be recreated anyway, rename is free). It must
   authenticate against the *new* image repos
   (`ghcr.io/mzakhar/clean-mail-backend`, `ghcr.io/mzakhar/clean-mail-frontend`)
   before the new Deployments can pull — this is a hard precondition for
@@ -228,7 +230,7 @@ mid-migration:
 - `https://cleanmail.zakharhome.org/` loads, OAuth/session login round-trips
   (cookie session depends on `SESSION_SECRET_KEY` carried over unchanged in
   step b).
-- LAN path `http://192.168.1.3/gmail/` (or renamed path, see open questions)
+- LAN path `http://192.168.1.3/gmail/` (path unchanged — decided legacy)
   loads through the renamed `clean-mail-strip-prefix` middleware.
 - `cleanmail-api.zakharhome.org` mobile bearer-auth prefix still 404s
   everything except `/api/classification/v1/mobile`.
@@ -327,32 +329,29 @@ Rollback: if step 8 fails, re-point to the old namespace (still present until
 step 9) or restore the step-4 tarball. Never delete the old namespace before
 verification.
 
-## Open Questions for Owner
+## Open Questions — ALL RESOLVED 2026-07-22
 
-1. Keep `ghcr-pull` secret name unchanged (simplest, name doesn't reference
-   the app) or rename to `clean-mail-ghcr-pull` for consistency with every
-   other renamed identity?
-2. Confirm dropping the per-app `GitRepository`/`Kustomization` pair
-   entirely (manifests become plain fleet YAML, like `platform/homepage`)
-   rather than keeping a `GitRepository` pointed at one of the two new code
-   repos. This spec recommends dropping it; confirm before executing.
-2b. Given (2), where should `clusters/themachine/apps/clean-mail/` truly
-    live — `apps/` (personal app precedent: `vs-book-app`, `synth`) as
-    proposed, or `platform/` (shared-service precedent: `homepage`,
-    `cloudflared`)? Proposal above uses `apps/`.
-3. LAN path `/gmail` -> rename to `/clean-mail` (and update the Traefik
-   `stripPrefix` middleware + `GOOGLE_REDIRECT_URI`/`FRONTEND_URL` secret
-   values + Google Cloud Console authorized redirect URI to match), or
-   leave the LAN path as legacy `/gmail` since it's not user-facing product
-   branding and a path rename adds an OAuth-redirect-URI coordination step
-   with no functional benefit?
+1. ~~`ghcr-pull` secret name.~~ **RESOLVED: rename to `clean-mail-ghcr-pull`.**
+   Clean because the secret is namespace-scoped and must be recreated in the
+   new `clean-mail` namespace regardless; only consumers are the three
+   `imagePullSecrets` refs in manifests being rewritten anyway; old
+   `ghcr-pull` in `gmail-app` stays untouched until prune, so rollback is
+   unaffected.
+2. ~~Drop per-app `GitRepository`/`Kustomization` pair?~~ **RESOLVED:
+   confirmed — drop entirely.** Manifests become plain fleet YAML like
+   `platform/homepage`.
+2b. ~~`apps/` vs `platform/` placement.~~ **RESOLVED: `apps/clean-mail/`**
+    (personal-app precedent), per proposal.
+3. ~~LAN path `/gmail` rename?~~ **RESOLVED: leave as legacy `/gmail`.**
+   Not user-facing branding; avoids OAuth-redirect-URI coordination with no
+   functional benefit. Middleware still renames to `clean-mail-strip-prefix`
+   (object name only, path string unchanged).
 4. ~~PVC data migration: copy vs PV rebind.~~ **RESOLVED 2026-07-22 —
    cold tar copy into a fresh `clean-mail-data` PVC.** See §"PVC Data
    Migration" below.
-5. Does the vault execution spec (`Clean Mail\specs\Repo Split & Coordinated
-   Rename - Execution Plan.md`) already answer any of the above? It did not
-   exist in the vault at the time this spec was written — confirm its
-   contents don't conflict before executing.
+5. ~~Vault execution spec conflicts?~~ **RESOLVED: vault note exists
+   (2026-07-22), four decisions locked, no conflicts** — it owns source-repo
+   side (P0–P3, P5–P7); this spec owns P4 fleet mechanics.
 
 ## Status
 
@@ -360,3 +359,9 @@ verification.
 commits made in this repo or the app repo. This spec records the fleet-side
 target state and phased migration for later execution once the code-repo
 split (backend/web) and image rename land.
+
+2026-07-22 (later): all five open questions resolved by owner —
+`clean-mail-ghcr-pull` rename, drop GitRepository pair (confirmed),
+`apps/` placement, LAN path stays `/gmail`, PVC cold tar copy. Spec is
+execution-ready; blocked only on code-repo split producing `clean-mail-*`
+GHCR images (vault plan P0–P3).
