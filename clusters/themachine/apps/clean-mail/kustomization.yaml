@@ -1,0 +1,21 @@
+# Clean Mail — fleet-owned manifests (deploy authority migrated from
+# mzakhar/CleanMail-backend deploy/k8s @ d4fbdb1, coordinated clean-mail-*
+# rename applied; spec: specs/Deploy Authority Migration - Clean Mail.md).
+#
+# GATED: not referenced from clusters/themachine/kustomization.yaml until the
+# P6 single-reconciliation flip. Old gmail-app stack (apps/gmail-frontend.yaml)
+# stays live and untouched as the rollback ref through the soak period.
+#
+# Manual-apply prerequisites before the P6 flip (never reconciled by Flux):
+#   - Secret clean-mail-secrets      (see secret.template.yaml)
+#   - Secret clean-mail-ghcr-pull    (dockerconfigjson for ghcr.io, must pull
+#                                     the clean-mail-* image repos)
+#   - PVC data cold-copy             (scripts/clean-mail-pvc-migrate.sh)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: clean-mail
+resources:
+  - namespace.yaml
+  - backend.yaml
+  - frontend.yaml
+  - ingress.yaml

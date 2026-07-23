@@ -1,0 +1,102 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: clean-mail-data
+  namespace: clean-mail
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: clean-mail-backend
+  namespace: clean-mail
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clean-mail-backend
+  namespace: clean-mail
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clean-mail-backend
+  template:
+    metadata:
+      labels:
+        app: clean-mail-backend
+    spec:
+      imagePullSecrets:
+        - name: clean-mail-ghcr-pull
+      serviceAccountName: clean-mail-backend
+      containers:
+        - name: backend
+          image: ghcr.io/mzakhar/clean-mail-backend@sha256:4379590af6cc81daabbb290120078a58acca09013f2d6d9ff6ecf34d9a042871
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: clean-mail-secrets
+          env:
+            # Workload Identity Federation for Anthropic API.
+            # IDs are non-secret; issuer "k3s-home" registered with inline JWKS.
+            - name: ANTHROPIC_FEDERATION_RULE_ID
+              value: "fdrl_013QYr2tJBojGFtgHqixHaH7"
+            - name: ANTHROPIC_ORGANIZATION_ID
+              value: "b876c729-18bc-4732-ba14-e5f964567a77"
+            - name: ANTHROPIC_SERVICE_ACCOUNT_ID
+              value: "svac_01D9WDqwhVfuov9wYXZZrPEn"
+            - name: ANTHROPIC_WORKSPACE_ID
+              value: "wrkspc_011HFuRjHxzjA4tcweZbTjGX"
+            - name: ANTHROPIC_IDENTITY_TOKEN_FILE
+              value: /var/run/secrets/anthropic/token
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: anthropic-identity
+              mountPath: /var/run/secrets/anthropic
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+              httpHeaders:
+                # kubelet probes use the pod IP as Host, which TrustedHostMiddleware
+                # would reject; pin an allowlisted host for the probe request.
+                - name: Host
+                  value: localhost
+            initialDelaySeconds: 10
+            periodSeconds: 15
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: clean-mail-data
+        - name: anthropic-identity
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  audience: anthropic  # must match the audience configured on the federation rule
+                  # Short-lived: kubelet rotates at ~80% of expiry, so a fresh
+                  # jti is available every ~8 min. The cluster's WIF issuer
+                  # enforces single-use jti; combined with the process-wide
+                  # cached client (core/llm.py) re-exchanges practically always
+                  # see a new projected token.
+                  expirationSeconds: 600
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clean-mail-backend-svc
+  namespace: clean-mail
+spec:
+  selector:
+    app: clean-mail-backend
+  ports:
+    - port: 8000
+      targetPort: 8000

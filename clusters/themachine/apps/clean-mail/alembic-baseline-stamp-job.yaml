@@ -1,0 +1,45 @@
+# Applied manually, never by Flux (not listed in kustomization.yaml).
+# Only needed against a FRESH (empty) PVC. The P6 migration cold-copies
+# gmail-data into clean-mail-data, so alembic_version comes across intact —
+# do NOT run this job during the cutover (fleet spec §"PVC Data Migration").
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: clean-mail-backend-alembic-baseline-stamp
+  namespace: clean-mail
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        job: alembic-baseline-stamp
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: clean-mail-ghcr-pull
+      serviceAccountName: clean-mail-backend
+      containers:
+        - name: stamp
+          image: ghcr.io/mzakhar/clean-mail-backend:main
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: clean-mail-secrets
+          env:
+            - name: DATABASE_URL
+              value: sqlite:////data/app.db
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              test -f /data/app.db
+              .venv/bin/python -m db.preflight --db /data/app.db
+              .venv/bin/alembic stamp 0001_baseline
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: clean-mail-data
