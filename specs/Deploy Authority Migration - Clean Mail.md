@@ -422,7 +422,9 @@ then prune old stack + `gmail-frontend-github` after soak.
   `0005_gmail_watch_renewal`, users=2, gmail_accounts=1; public 302 (CF
   Access), LAN `/gmail/` 200, LAN proxy `/auth/session` returns JSON, mobile
   prefix 401 / outside-prefix 404. No alembic re-stamp run (data copy).
-  Browser OAuth round-trip pending owner click-through.
+  Browser OAuth/session login verified by owner 2026-07-23 — step f fully
+  green; carried-over session/encryption keys confirmed working. Soak
+  period running.
 
 Soak-period cleanup (after owner declares green, not before):
 `kubectl delete ns gmail-app` (wipes old PVC dir — tarball is the backstop),
