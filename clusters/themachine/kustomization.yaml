@@ -4,12 +4,10 @@ resources:
   - flux-system/gotk-components.yaml
   - flux-system/gotk-sync.yaml
   - apps/vs-book-app.yaml
-  - apps/gmail-frontend.yaml
-  # P6 flip (single reconciliation): uncomment apps/clean-mail AND remove
-  # apps/gmail-frontend.yaml above in the same commit. Gated per
-  # specs/Deploy Authority Migration - Clean Mail.md — old gmail-app stack is
-  # the rollback ref until soak completes.
-  # - apps/clean-mail
+  # P6 flip landed: apps/gmail-frontend.yaml removed here (rollback ref lives
+  # in git history @9b3c23d and the suspended-orphaned gmail-app namespace
+  # through the soak period — see specs/Deploy Authority Migration - Clean Mail.md).
+  - apps/clean-mail
   - apps/synth.yaml
   - platform/action-runner
   - platform/observability
