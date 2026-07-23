@@ -394,3 +394,39 @@ b/d/e; branch `mzakhar/clean-mail-p4`):
 Remaining for P6: apply `clean-mail-secrets` + `clean-mail-ghcr-pull` on
 `themachine`, run PVC cold copy, flip root kustomization, verify per step f,
 then prune old stack + `gmail-frontend-github` after soak.
+
+2026-07-23 — **P6 CUTOVER COMPLETE** (flip PR #4 `600e2d0`, digest fix
+`b5eaae3`). App downtime ~5 min. Deviations & findings vs plan:
+
+- Prereqs applied on `themachine`: `clean-mail` ns, PVC, `clean-mail-secrets`
+  (values copied server-side from live secret, keys NOT regenerated;
+  `GITHUB_FEEDBACK_REPO` overridden to `mzakhar/CleanMail-backend`),
+  `clean-mail-ghcr-pull` (same GHCR creds — verified pulling `clean-mail-*`).
+- PVC cold copy per §procedure: WAL folded on scale-to-0 (`app.db` 45→49 MB,
+  no `-wal` in copy), 107 MB parity old/new, tarball
+  `/root/gmail-data-20260723.tgz` (19 MB) retained. **No chroma dir existed
+  in the old PVC** (created lazily; spec's content table was wrong on that).
+  Script fix: k3s local-path PVs expose the dir via `spec.local.path`, not
+  `spec.hostPath.path`.
+- Flip executed as single reconciliation: old Ingresses deleted manually
+  pre-merge (frees hosts); `gmail-frontend` Kustomization was suspended at
+  deletion, so Flux skipped GC — old `gmail-app` stack orphaned in place at
+  0 replicas (deploys, PVC+data, secrets) as the soak rollback ref.
+- **Rename-table gap found live:** the frontend image bakes
+  `gmail-backend-svc` into nginx.conf upstreams (app-repo file, moved
+  untouched at P1). New pod CrashLooped on DNS. Bridged with a temp
+  `gmail-backend-svc` shim Service in `clean-mail` (restored app in ~4 min),
+  fixed properly in web repo PR #1 (`nginx.conf` → `clean-mail-backend-svc`),
+  new digest `@sha256:3f4d2e4f…` pinned, shim deleted.
+- Step f verification green: backend+frontend 1/1; `alembic_version`
+  `0005_gmail_watch_renewal`, users=2, gmail_accounts=1; public 302 (CF
+  Access), LAN `/gmail/` 200, LAN proxy `/auth/session` returns JSON, mobile
+  prefix 401 / outside-prefix 404. No alembic re-stamp run (data copy).
+  Browser OAuth round-trip pending owner click-through.
+
+Soak-period cleanup (after owner declares green, not before):
+`kubectl delete ns gmail-app` (wipes old PVC dir — tarball is the backstop),
+`kubectl -n flux-system delete secret gmail-frontend-github`, delete
+`/root/gmail-data-20260723.tgz`, remove backend-repo `deploy/k8s/` +
+`scripts/update-deploy-image.ps1` + `npm run deploy:pin-image` (P4 tail —
+fleet copy now live and reconciling).
