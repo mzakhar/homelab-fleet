@@ -365,3 +365,32 @@ split (backend/web) and image rename land.
 `apps/` placement, LAN path stays `/gmail`, PVC cold tar copy. Spec is
 execution-ready; blocked only on code-repo split producing `clean-mail-*`
 GHCR images (vault plan P0–P3).
+
+2026-07-22 (later) — **P4 manifests authored** (migration step a + prep for
+b/d/e; branch `mzakhar/clean-mail-p4`):
+
+- `clusters/themachine/apps/clean-mail/` ported 1:1 from app-repo
+  `deploy/k8s/` @ `d4fbdb1` (freeze intact) with the full Identity Rename
+  Table applied. Plain manifest dir, no GitRepository/Kustomization pair,
+  per resolved topology (owner reconfirmed at execution time over the
+  vault P3 table's GitRepository-per-repo row).
+- Images digest-pinned to current `:main` publishes:
+  backend `@sha256:4379590a…`, frontend `@sha256:b3374b00…` (resolved via
+  cluster pull creds; local `gh`/docker lack GHCR access).
+- **Gated:** `apps/clean-mail` is a commented-out resource in the root
+  kustomization — nothing reconciles until the P6 flip (uncomment + remove
+  `apps/gmail-frontend.yaml` in the same commit). Old `gmail-app` stack
+  untouched as rollback ref.
+- `secret.template.yaml` renamed/re-namespaced; `GITHUB_FEEDBACK_REPO`
+  updated to `mzakhar/CleanMail-backend`; source file's duplicated
+  `FCM_TOKEN_RETENTION_DAYS` line dropped.
+- Step d: `scripts/pin-clean-mail-image.ps1` (fleet-side pinner, backend +
+  frontend, branch-guarded; app-repo pinner retires at P6).
+- §PVC procedure encoded as `scripts/clean-mail-pvc-migrate.sh` (runs on
+  `themachine` at P6; binder pod for WaitForFirstConsumer, backend held at
+  0 replicas pre-copy, tarball backstop, no alembic re-stamp).
+- `kubectl kustomize` green for both `apps/clean-mail` and root.
+
+Remaining for P6: apply `clean-mail-secrets` + `clean-mail-ghcr-pull` on
+`themachine`, run PVC cold copy, flip root kustomization, verify per step f,
+then prune old stack + `gmail-frontend-github` after soak.

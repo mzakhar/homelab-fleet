@@ -1,0 +1,75 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: clean-mail-strip-prefix
+  namespace: clean-mail
+spec:
+  stripPrefix:
+    prefixes:
+      # LAN path stays /gmail (legacy, decided 2026-07-22) — not user-facing
+      # branding; avoids OAuth-redirect-URI coordination for no benefit.
+      - /gmail
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: clean-mail
+  namespace: clean-mail
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: clean-mail-clean-mail-strip-prefix@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - http:
+        paths:
+          - path: /gmail
+            pathType: Prefix
+            backend:
+              service:
+                name: clean-mail-frontend-svc
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: clean-mail-external
+  namespace: clean-mail
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: cleanmail.zakharhome.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: clean-mail-frontend-svc
+                port:
+                  number: 80
+---
+# Mobile API hostname (Stage 3 S3.3). Browser-route isolation is structural:
+# this host routes ONLY the bearer-auth mobile API prefix, straight to the
+# backend service (frontend nginx stays browser-only). No SPA, /auth, or
+# cookie-session endpoint is reachable here; everything else 404s at Traefik.
+# The browser hostname above keeps its Cloudflare Access challenge; this one
+# deliberately has no Access app (D4: no wildcard *.zakharhome.org app exists).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: clean-mail-mobile
+  namespace: clean-mail
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: cleanmail-api.zakharhome.org
+      http:
+        paths:
+          - path: /api/classification/v1/mobile
+            pathType: Prefix
+            backend:
+              service:
+                name: clean-mail-backend-svc
+                port:
+                  number: 8000

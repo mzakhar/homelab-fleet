@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clean-mail-frontend
+  namespace: clean-mail
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clean-mail-frontend
+  template:
+    metadata:
+      labels:
+        app: clean-mail-frontend
+    spec:
+      imagePullSecrets:
+        - name: clean-mail-ghcr-pull
+      containers:
+        - name: frontend
+          image: ghcr.io/mzakhar/clean-mail-frontend@sha256:b3374b0016e8a54391b07d27080e175db1d2531e01d369d919db46e61270725f
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clean-mail-frontend-svc
+  namespace: clean-mail
+spec:
+  selector:
+    app: clean-mail-frontend
+  ports:
+    - port: 80
+      targetPort: 80
