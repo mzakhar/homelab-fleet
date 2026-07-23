@@ -36,7 +36,8 @@ pv_path() { # namespace pvc -> host path
   local pv
   pv=$(kubectl -n "$1" get pvc "$2" -o jsonpath='{.spec.volumeName}')
   [[ -n "$pv" ]] || { echo "PVC $1/$2 not bound" >&2; return 1; }
-  kubectl get pv "$pv" -o jsonpath='{.spec.hostPath.path}'
+  # k3s local-path PVs use spec.local.path (newer) or spec.hostPath.path (older)
+  kubectl get pv "$pv" -o jsonpath='{.spec.local.path}{.spec.hostPath.path}'
 }
 
 echo "== Clean Mail PVC cold-copy migration =="
