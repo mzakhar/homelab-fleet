@@ -38,6 +38,10 @@ data:
           insecure: true
       prometheus:
         endpoint: 0.0.0.0:9464
+      otlphttp/loki:
+        endpoint: http://loki:3100/otlp
+        tls:
+          insecure: true
       debug:
         verbosity: basic
 
@@ -59,7 +63,7 @@ data:
         logs:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [debug]
+          exporters: [otlphttp/loki]
 ---
 apiVersion: apps/v1
 kind: Deployment

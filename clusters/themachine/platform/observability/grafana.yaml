@@ -21,6 +21,22 @@ data:
         jsonData:
           tracesToMetrics:
             datasourceUid: prometheus
+          tracesToLogsV2:
+            datasourceUid: Loki
+            spanStartTimeShift: -5m
+            spanEndTimeShift: 5m
+      - name: Loki
+        uid: Loki
+        type: loki
+        access: proxy
+        url: http://loki:3100
+        jsonData:
+          derivedFields:
+            - name: TraceID
+              matcherType: label
+              matcherRegex: trace_id
+              url: '$${__value.raw}'
+              datasourceUid: Tempo
   dashboards.yaml: |
     apiVersion: 1
     providers:

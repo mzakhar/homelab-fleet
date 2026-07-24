@@ -7,6 +7,8 @@ resources:
   - alertmanager.yaml
   - prometheus.yaml
   - tempo.yaml
+  - loki.yaml
+  - alloy.yaml
   - otel-collector.yaml
   - grafana.yaml
   - uptime-kuma.yaml

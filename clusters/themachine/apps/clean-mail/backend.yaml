@@ -55,6 +55,14 @@ spec:
               value: "wrkspc_011HFuRjHxzjA4tcweZbTjGX"
             - name: ANTHROPIC_IDENTITY_TOKEN_FILE
               value: /var/run/secrets/anthropic/token
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector.observability:4318
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: http/protobuf
+            - name: OTEL_SERVICE_NAME
+              value: clean-mail-backend
+            - name: OTEL_TRACES_SAMPLER
+              value: parentbased_always_on
           volumeMounts:
             - name: data
               mountPath: /data
