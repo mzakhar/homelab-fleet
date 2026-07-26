@@ -73,3 +73,10 @@ spec:
                 name: clean-mail-backend-svc
                 port:
                   number: 8000
+          - path: /api/lost-mail/v1/mobile
+            pathType: Prefix
+            backend:
+              service:
+                name: clean-mail-backend-svc
+                port:
+                  number: 8000
