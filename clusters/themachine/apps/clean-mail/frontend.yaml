@@ -17,7 +17,7 @@ spec:
         - name: clean-mail-ghcr-pull
       containers:
         - name: frontend
-          image: ghcr.io/mzakhar/clean-mail-frontend@sha256:8d6eb78d4930e582cbfb8b22f71e2050098feb7776de83208b884e1bc36fee77
+          image: ghcr.io/mzakhar/clean-mail-frontend@sha256:8948369bdfcd84090e267ead2742050c64d7c8f9504ac9c0aa76916f604c1ab3
           imagePullPolicy: Always
           ports:
             - containerPort: 80
