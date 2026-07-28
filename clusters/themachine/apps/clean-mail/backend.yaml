@@ -43,6 +43,10 @@ spec:
             - secretRef:
                 name: clean-mail-secrets
           env:
+            - name: SERVER_VERDICT_PROJECTION_ENABLED
+              value: "true"
+            - name: TRIAGE_INLINE_CLASSIFICATION_ENABLED
+              value: "false"
             # Workload Identity Federation for Anthropic API.
             # IDs are non-secret; issuer "k3s-home" registered with inline JWKS.
             - name: ANTHROPIC_FEDERATION_RULE_ID
