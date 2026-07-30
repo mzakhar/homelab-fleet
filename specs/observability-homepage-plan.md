@@ -181,7 +181,7 @@ excluded VS Book App. Root cause was two HTTP semantic conventions live at once.
 - [x] Move the Homepage Clean Mail Health card onto stable metric names.
 - [x] Add the `Services RED` Grafana dashboard with a `service` template
   variable covering all instrumented apps.
-- [ ] Verify after rollout that `clean-mail-backend` appears in the Services RED
+- [x] Verify after rollout that `clean-mail-backend` appears in the Services RED
   service picker and `AppMissingStableHttpMetrics` clears.
 - [ ] Switch `http/dup` to `http` once no query references
   `http_server_duration_milliseconds_*`.
@@ -346,8 +346,35 @@ Progress on 2026-07-30:
   `clean-mail-backend`, which is the expected pre-rollout state and should clear
   once the backend restarts with the new env var.
 
+Rollout verified on 2026-07-30 after merging PR #25:
+
+- Self-review before merge caught two changes that rendered correctly and would
+  then have silently not deployed. Prometheus rule files only reload on restart,
+  and the live API confirmed the running instance still served the pre-3c
+  `apps.rules` after the ConfigMap changed. Grafana dashboards mount with
+  `subPath`, and `subPath` mounts never receive ConfigMap updates at all, so the
+  new dashboard would never have appeared. Both deployments now carry a
+  provisioning-version annotation that must be bumped on every change.
+- Confirmed live: `apps.rules` includes `AppMissingStableHttpMetrics`, Grafana
+  serves `services-red`, and the Clean Mail backend runs with
+  `OTEL_SEMCONV_STABILITY_OPT_IN=http/dup`.
+- Clean Mail stable metrics appeared within 30 seconds of the rollout with the
+  same label shape as VS Book App: `http_route`, `http_response_status_code`,
+  `http_request_method`. `http_route` values stay templated.
+- `AppMissingStableHttpMetrics` cleared. Both services now appear in the Services
+  RED picker. No alerts firing.
+- The Homepage p95 card briefly read `NaN` right after the restart, because the
+  5 minute rate window was younger than the metric series and bucket rates were
+  non-monotonic. It settled to 72.5ms on its own. Left unguarded on purpose: a
+  `>= 0` filter would hide a genuinely broken histogram behind a reassuring zero,
+  and `or vector(0)` does not catch NaN since NaN is a value.
+
 ## Decisions
 
+- 2026-07-30: Bump a pod-template provisioning-version annotation on every
+  Prometheus rule and Grafana dashboard change. Prometheus does not re-read rule
+  files without a restart, and Grafana's `subPath` dashboard mounts never see
+  ConfigMap updates, so both fail silently and look deployed.
 - 2026-07-30: Standardize on stable HTTP semantic conventions for all app
   metrics. Rules and dashboards target `http_server_request_duration_seconds`
   with `http_route` and `http_response_status_code` only. Supporting two
