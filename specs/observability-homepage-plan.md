@@ -1,7 +1,7 @@
 # Observability Stack and Homepage Plan
 
 Status: implementation in progress
-Last updated: 2026-07-21
+Last updated: 2026-07-29
 
 ## Goal
 
@@ -147,6 +147,23 @@ Pipeline health dashboard:
 - [x] Route notifications to a low-noise target first.
 - [x] Add Homepage alert count card.
 
+### Phase 3b - App-Level Alerting
+
+The Phase 3 rules covered infrastructure only. Nothing alerted on application
+error conditions, so app errors stayed invisible on Homepage.
+
+- [x] Add `apps.rules` for HTTP 5xx rate (warning 5%, critical 25%) and p95
+  latency, keyed on `service_name` so every instrumented app is covered.
+- [x] Add `clean-mail.rules` for push send failures, Gmail watch expiry, and
+  Gmail cursor lag.
+- [x] Forward parsed Alertmanager notifications from action-runner to ntfy so
+  alerts leave the cluster instead of dying in an in-memory list.
+- [x] Split the Homepage `Alerts` card into critical/warning/app counts.
+- [x] Add a Homepage `Clean Mail Health` card with 5xx rate, p95, and req/s.
+- [ ] Apply the `action-runner-ntfy` secret on `themachine` and subscribe the
+  phone to the topic.
+- [ ] Verify a deliberately triggered alert reaches ntfy end to end.
+
 ### Phase 4 - Instrument Hosted Apps
 
 - First target pair: Clean Mail and VS Book App. Either may land first.
@@ -249,8 +266,42 @@ Progress on 2026-07-21:
   Prometheus `http_server_request_duration_seconds_count` series labeled by
   service, route, method, status, namespace, and environment.
 
+Progress on 2026-07-29:
+
+- Diagnosed why Clean Mail error conditions produced no Homepage signal: Clean
+  Mail metrics were arriving correctly, but every Prometheus rule was
+  infrastructure-scoped, so `ALERTS` stayed empty.
+- Found two semantic conventions live at once. Clean Mail (Python) exports
+  `http_server_duration_milliseconds_*`; VS Book App (Node) exports
+  `http_server_request_duration_seconds_*`. App rules match both by regex.
+- Clean Mail exposes no `http_route` label, so app rules key on
+  `service_name` and `http_status_code` only.
+- Corrected two draft rules against live data before shipping:
+  `cleanmail_gmail_watch_expiration_seconds` is seconds remaining, not an epoch
+  timestamp (live value 536400), and cursor-age buckets place all normal traffic
+  in the 750-1000s bucket, making any quantile threshold near 900 pure
+  interpolation noise. The cursor rule now counts observations above the 2500s
+  boundary instead.
+- Verified every new expression against live Prometheus on `themachine`. All
+  new rules evaluate empty on the current healthy fleet.
+- Added ntfy delivery inside the existing action-runner alert webhook handler
+  rather than a second Alertmanager receiver, because Alertmanager cannot
+  template a webhook body and ntfy would otherwise publish raw JSON.
+- Verified the ntfy formatter with an offline check covering severity mapping,
+  resolved notifications, missing labels, and the unset-URL no-op.
+
 ## Decisions
 
+- 2026-07-29: Route ntfy pushes through action-runner's existing
+  `/alerts/webhook` handler instead of adding an Alertmanager receiver.
+  Alertmanager has no body templating for webhooks, so a direct receiver would
+  push unreadable JSON to the phone.
+- 2026-07-29: Treat the ntfy.sh topic name as a credential. It lives in a
+  manually applied `action-runner-ntfy` secret, never in git, and the
+  `secretKeyRef` is optional so alert push degrades to a no-op when absent.
+- 2026-07-29: Keep app alert rules generic on `service_name` rather than
+  per-app, so newly instrumented apps inherit error and latency alerting with
+  no rule changes.
 - 2026-07-20: Keep Homepage as triage and Grafana as investigation.
 - 2026-07-20: Prioritize Kubernetes metrics and alert visibility before deeper app instrumentation.
 - 2026-07-20: Defer logs until there is a backend and a concrete use case.
