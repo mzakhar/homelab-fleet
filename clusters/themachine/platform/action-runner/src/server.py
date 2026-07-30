@@ -15,6 +15,7 @@ CA = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 CTX = ssl.create_default_context(cafile=CA)
 AUDIT = []
 ALERT_NOTIFICATIONS = []
+NTFY_URL = os.getenv("NTFY_URL", "").strip()
 UPTIME_KUMA_STATUS_URL = os.getenv(
     "UPTIME_KUMA_STATUS_URL",
     "http://uptime-kuma.observability.svc.cluster.local:3001/api/status-page/homelab",
@@ -103,6 +104,40 @@ def fetch_json(url, timeout=5):
     req = urllib.request.Request(url, headers={"Accept": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as res:
         return json.loads(res.read().decode("utf-8", errors="replace"))
+
+def alert_lines(notification):
+    lines = []
+    for alert in notification["alerts"]:
+        labels = alert.get("labels", {})
+        state = (alert.get("status") or notification.get("status") or "firing").upper()
+        name = labels.get("alertname", "alert")
+        severity = labels.get("severity", "none")
+        summary = alert.get("annotations", {}).get("summary", "")
+        scope = labels.get("service_name") or labels.get("namespace") or labels.get("instance") or ""
+        lines.append(" ".join(part for part in [f"[{state}]", severity, name, scope, summary and f"- {summary}"] if part))
+    return lines
+
+def ntfy_publish(notification):
+    """Push a formatted alert summary to ntfy. No-op when NTFY_URL is unset."""
+    if not NTFY_URL:
+        return
+    lines = alert_lines(notification)
+    if not lines:
+        return
+    firing = [a for a in notification["alerts"] if (a.get("status") or notification.get("status")) == "firing"]
+    critical = any(a.get("labels", {}).get("severity") == "critical" for a in firing)
+    title = f"homelab: {len(firing)} firing" if firing else "homelab: resolved"
+    req = urllib.request.Request(
+        NTFY_URL,
+        data="\n".join(lines).encode("utf-8"),
+        method="POST",
+        headers={
+            "Title": title,
+            "Priority": "urgent" if critical else ("default" if firing else "low"),
+            "Tags": "rotating_light" if critical else ("warning" if firing else "white_check_mark"),
+        },
+    )
+    urllib.request.urlopen(req, timeout=5).close()
 
 def prom_label(value):
     return str(value).replace("\\", "\\\\").replace("\n", "\\n").replace('"', '\\"')
@@ -410,7 +445,7 @@ class Handler(BaseHTTPRequestHandler):
                     payload = json.loads(body)
                 except json.JSONDecodeError:
                     payload = {"raw": body}
-                ALERT_NOTIFICATIONS.insert(0, {
+                notification = {
                     "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                     "status": payload.get("status"),
                     "alerts": [{
@@ -418,8 +453,13 @@ class Handler(BaseHTTPRequestHandler):
                         "labels": alert.get("labels", {}),
                         "annotations": alert.get("annotations", {}),
                     } for alert in payload.get("alerts", [])],
-                })
+                }
+                ALERT_NOTIFICATIONS.insert(0, notification)
                 del ALERT_NOTIFICATIONS[50:]
+                try:
+                    ntfy_publish(notification)
+                except Exception as error:
+                    notification["ntfyError"] = str(error)
                 return json_response(self, 200, {"ok": True})
             email = self.admin()
             if not email:

@@ -187,6 +187,86 @@ data:
             annotations:
               summary: "Uptime Kuma monitor down"
               description: "Uptime Kuma monitor {{ $labels.monitor_name }} is currently down."
+
+      - name: apps.rules
+        # Metric name regex covers both semantic conventions in use:
+        # Python instrumentation emits http_server_duration_milliseconds_count,
+        # Node instrumentation emits http_server_request_duration_seconds_count.
+        rules:
+          - alert: AppHttpServerErrorRate
+            expr: |
+              sum by (service_name) (rate({__name__=~"http_server_(request_)?duration.*_count",service_name!="",http_status_code=~"5.."}[5m]))
+                /
+              sum by (service_name) (rate({__name__=~"http_server_(request_)?duration.*_count",service_name!=""}[5m]))
+                > 0.05
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "{{ $labels.service_name }} 5xx rate above 5%"
+              description: "{{ $labels.service_name }} served more than 5% HTTP 5xx responses over the last 5 minutes."
+
+          - alert: AppHttpServerErrorRateCritical
+            expr: |
+              sum by (service_name) (rate({__name__=~"http_server_(request_)?duration.*_count",service_name!="",http_status_code=~"5.."}[5m]))
+                /
+              sum by (service_name) (rate({__name__=~"http_server_(request_)?duration.*_count",service_name!=""}[5m]))
+                > 0.25
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "{{ $labels.service_name }} 5xx rate above 25%"
+              description: "{{ $labels.service_name }} served more than 25% HTTP 5xx responses over the last 5 minutes."
+
+          - alert: AppHttpServerLatencyHigh
+            expr: |
+              histogram_quantile(0.95, sum by (service_name, le) (rate(http_server_duration_milliseconds_bucket{service_name!=""}[5m]))) > 3000
+                or
+              1000 * histogram_quantile(0.95, sum by (service_name, le) (rate(http_server_request_duration_seconds_bucket{service_name!=""}[5m]))) > 3000
+            for: 10m
+            labels:
+              severity: warning
+            annotations:
+              summary: "{{ $labels.service_name }} p95 latency above 3s"
+              description: "{{ $labels.service_name }} p95 HTTP server latency stayed above 3 seconds for 10 minutes."
+
+      - name: clean-mail.rules
+        rules:
+          - alert: CleanMailFcmSendFailing
+            expr: sum(rate(cleanmail_fcm_send_attempts_total{outcome!="success"}[10m])) > 0
+            for: 10m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Clean Mail push delivery failing"
+              description: "Clean Mail FCM send attempts returned a non-success outcome over the last 10 minutes."
+
+          # Gauge is seconds remaining until expiry, not an absolute epoch —
+          # live value 536400 (~6.2 days). Do not subtract time() here.
+          - alert: CleanMailGmailWatchExpiring
+            expr: min(cleanmail_gmail_watch_expiration_seconds) < 86400
+            for: 15m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Clean Mail Gmail watch expiring"
+              description: "Clean Mail Gmail push watch expires in under 24 hours; renewal is failing or stalled."
+
+          # Steady state puts every observation in the 750-1000s bucket, so a
+          # quantile threshold near 900 is pure interpolation noise. Count the
+          # observations above the next boundary instead — exact, no guessing.
+          - alert: CleanMailGmailCursorStale
+            expr: |
+              sum(rate(cleanmail_gmail_cursor_age_seconds_bucket{le="+Inf"}[15m]))
+                - sum(rate(cleanmail_gmail_cursor_age_seconds_bucket{le="2500"}[15m]))
+                > 0
+            for: 15m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Clean Mail Gmail cursor falling behind"
+              description: "Clean Mail Gmail sync cursor age exceeded 2500s; mail ingestion is lagging."
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -245,7 +325,7 @@ spec:
   template:
     metadata:
       annotations:
-        homelab.zakharhome.org/prometheus-config-version: "2026-07-21-observability-3"
+        homelab.zakharhome.org/prometheus-config-version: "2026-07-29-app-alert-rules-1"
       labels:
         app.kubernetes.io/name: prometheus
     spec:
