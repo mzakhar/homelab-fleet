@@ -8,6 +8,13 @@ metadata:
 spec:
   replicas: 1
   revisionHistoryLimit: 3
+  strategy:
+    # Single PVC, single replica: the old pod must release the volume
+    # before the new one starts, or init fails on the contended store.
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: uptime-kuma
