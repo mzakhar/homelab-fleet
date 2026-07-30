@@ -35,10 +35,59 @@ data:
     limits_config:
       retention_period: 168h
 
+    ruler:
+      alertmanager_url: http://alertmanager:9093
+      enable_alertmanager_v2: true
+      enable_api: true
+      # Rules come from the loki-rules ConfigMap, not the PVC. With
+      # auth_enabled: false the tenant is "fake", so files must live in
+      # <directory>/fake/ — that is where the ConfigMap is mounted.
+      storage:
+        type: local
+        local:
+          directory: /etc/loki/rules
+      # Scratch space for rule evaluation; the root filesystem is read-only.
+      rule_path: /tmp/loki-ruler
+      ring:
+        kvstore:
+          store: inmemory
+
     compactor:
       working_directory: /loki/compactor
       retention_enabled: true
       delete_request_store: filesystem
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loki-rules
+  namespace: observability
+data:
+  clean-mail.yaml: |
+    groups:
+      - name: clean-mail-logs
+        interval: 1m
+        rules:
+          # Clean Mail logs are structured JSON with a `level` field. Parse it
+          # rather than regex-matching "error" across raw lines: a naive regex
+          # matches roughly 140 benign lines per 6h in observability and
+          # flux-system. `__error__=""` drops the non-JSON access-log lines.
+          #
+          # Baseline measured 2026-07-30: zero ERROR or CRITICAL lines in 24h
+          # against 2239 INFO and 12 WARNING in 6h. The threshold is set to
+          # catch a burst rather than a single transient failure.
+          #
+          # This covers what the HTTP metrics cannot: background worker and
+          # Gmail sync failures that never surface as a 5xx response.
+          - alert: CleanMailErrorLogs
+            expr: |
+              sum(count_over_time({namespace="clean-mail"} | json | __error__="" | level=~"ERROR|CRITICAL" [10m])) > 3
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Clean Mail logging errors"
+              description: "Clean Mail emitted more than 3 ERROR or CRITICAL log lines in 10 minutes. Baseline is zero."
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -55,6 +104,10 @@ spec:
       app.kubernetes.io/name: loki
   template:
     metadata:
+      annotations:
+        # The Loki config mounts with subPath, which never receives ConfigMap
+        # updates. Bump this on every loki.yaml change.
+        homelab.zakharhome.org/loki-config-version: "2026-07-30-ruler-1"
       labels:
         app.kubernetes.io/name: loki
     spec:
@@ -97,6 +150,10 @@ spec:
               mountPath: /loki
             - name: tmp
               mountPath: /tmp
+            # Whole-directory mount so rule edits reach the pod without a
+            # restart; the ruler re-reads this path on its poll interval.
+            - name: rules
+              mountPath: /etc/loki/rules/fake
       volumes:
         - name: config
           configMap:
@@ -106,6 +163,9 @@ spec:
             claimName: loki-data
         - name: tmp
           emptyDir: {}
+        - name: rules
+          configMap:
+            name: loki-rules
 ---
 apiVersion: v1
 kind: Service
