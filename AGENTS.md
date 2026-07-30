@@ -54,6 +54,11 @@ the source of truth for the `themachine` k3s cluster and shared
   lists.
 - Current secret-backed integrations include Homepage GitHub, Jellyfin, Plex,
   and Cloudflare Tunnel credentials.
+- For a one-key live Secret update, use a merge patch on `data`; never pipe
+  `kubectl create secret generic ... --dry-run=client -o yaml` into
+  `kubectl apply`, because it can remove every existing key. `envFrom` values
+  load at Pod creation, so restart only after patching and keep a healthy old
+  Pod until its replacement is Ready.
 - Keep protected routes behind Cloudflare Access; Homepage is not an auth
   boundary by itself.
 - Action-runner must stay allowlisted. Do not add arbitrary shell execution from
