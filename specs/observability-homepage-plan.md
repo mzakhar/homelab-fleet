@@ -160,9 +160,9 @@ error conditions, so app errors stayed invisible on Homepage.
   alerts leave the cluster instead of dying in an in-memory list.
 - [x] Split the Homepage `Alerts` card into critical/warning/app counts.
 - [x] Add a Homepage `Clean Mail Health` card with 5xx rate, p95, and req/s.
-- [ ] Apply the `action-runner-ntfy` secret on `themachine` and subscribe the
+- [x] Apply the `action-runner-ntfy` secret on `themachine` and subscribe the
   phone to the topic.
-- [ ] Verify a deliberately triggered alert reaches ntfy end to end.
+- [x] Verify a deliberately triggered alert reaches ntfy end to end.
 
 ### Phase 4 - Instrument Hosted Apps
 
@@ -289,6 +289,16 @@ Progress on 2026-07-29:
   template a webhook body and ntfy would otherwise publish raw JSON.
 - Verified the ntfy formatter with an offline check covering severity mapping,
   resolved notifications, missing labels, and the unset-URL no-op.
+- Applied the `action-runner-ntfy` secret on `themachine` and confirmed alert
+  delivery end to end: a synthetic critical payload posted to
+  `/alerts/webhook` returned `ok`, stored with no `ntfyError`, and arrived as a
+  phone push.
+- Noted an unrelated pre-existing trust-boundary detail while verifying:
+  `actor()` accepts `x-authenticated-user-email` as a fallback to the
+  Cloudflare Access header, so any in-cluster caller can self-assert admin on
+  action-runner. Cloudflare Access gates the public hostname (unauthenticated
+  POST returns 302), so this is not remotely exploitable. Tracked as optional
+  hardening, not part of this work.
 
 ## Decisions
 
