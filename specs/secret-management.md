@@ -48,10 +48,13 @@ feature flags and config:
   `FRONTEND_URL`, `GOOGLE_REDIRECT_URI`, `GOOGLE_CLIENT_ID`, `FCM_PROJECT_ID`,
   `GMAIL_WATCH_TOPIC`, `GMAIL_PUBSUB_SUBSCRIPTION`, `GITHUB_FEEDBACK_REPO`
 
-Genuinely secret, roughly 7 keys: `GOOGLE_CLIENT_SECRET`,
+Genuinely secret, 6 keys: `GOOGLE_CLIENT_SECRET`,
 `GOOGLE_PUBSUB_CREDENTIALS_JSON`, `GITHUB_FEEDBACK_TOKEN`,
-`SESSION_SECRET_KEY`, `TOKEN_ENCRYPTION_KEY`, `DATABASE_URL`, and the Gmail
-OAuth material behind it.
+`SESSION_SECRET_KEY`, `TOKEN_ENCRYPTION_KEY`, `DATABASE_URL`.
+
+`TOKEN_ENCRYPTION_KEY` and `SESSION_SECRET_KEY` are the two that must never be
+regenerated — per the Clean Mail deploy-authority spec, rotating them
+invalidates existing sessions and every OAuth token encrypted at rest.
 
 This inverts the priority. Flags are what get edited, one key at a time, by hand
 — which is exactly the operation that nearly wiped the Secret. Moving config out
