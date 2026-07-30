@@ -28,6 +28,11 @@ HOSTNAMES=(
   "dashboard.${ZONE_NAME}"
   "homeassistant.${ZONE_NAME}"
   "actions.${ZONE_NAME}"
+  # Investigation UIs. Both rely entirely on Cloudflare Access: Grafana runs
+  # with anonymous Viewer enabled and Uptime Kuma serves a public status page.
+  # Create the admin-only Access policy before running this script for them.
+  "grafana.${ZONE_NAME}"
+  "uptime.${ZONE_NAME}"
 )
 ORIGIN_SERVICE="http://traefik.kube-system.svc.cluster.local:80"
 

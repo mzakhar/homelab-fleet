@@ -48,8 +48,10 @@ What is actually still open:
   still means a manual Tempo search.
 - Alertmanager routes everything to one receiver at one repeat interval. There
   is no severity-based routing or quiet-hours handling.
-- Log-based alerting is unavailable: Loki has a `rules_directory` but no
-  `ruler` block and no `alertmanager_url`.
+- ~~Log-based alerting is unavailable.~~ Closed 2026-07-30: the Loki ruler is
+  enabled and routes to Alertmanager.
+- Cloudflare Access policies for `grafana.` and `uptime.` are not yet created,
+  so those hostnames must not be published until they are.
 
 ## Design Principles
 
@@ -253,15 +255,20 @@ pod logs cluster-wide.
 
 ### Phase 7 - Protected Investigation UIs
 
-- [ ] Publish Grafana at `grafana.zakharhome.org` behind admin-only Cloudflare
-  Access.
-- [ ] Publish Uptime Kuma at `uptime.zakharhome.org` behind admin-only
-  Cloudflare Access.
+- [x] Add the `grafana.zakharhome.org` Ingress and tunnel hostname.
+- [x] Add the `uptime.zakharhome.org` Ingress and tunnel hostname.
+- [ ] Create the admin-only Cloudflare Access policies, then run
+  `setup-tunnel.sh` to create the DNS records. Access must exist first:
+  Grafana runs with anonymous Viewer enabled and Uptime Kuma serves a public
+  status page, so Access is the only auth boundary in front of either.
 - [ ] Publish raw Prometheus UI only if it adds value beyond Grafana.
-- [ ] Keep Tempo, OTel receivers, exporters, kube-state-metrics, and Alertmanager
-  internal.
-- [ ] Change Homepage browser links to protected HTTPS hostnames while keeping
-  widget/API URLs on internal Kubernetes service DNS.
+- [x] Keep Tempo, Loki, OTel receivers, exporters, kube-state-metrics, and
+  Alertmanager internal. None have an Ingress.
+- [x] Change Homepage browser links to protected HTTPS hostnames while keeping
+  widget/API URLs on internal Kubernetes service DNS. Six `href` values moved;
+  every widget `url` still points at `*.svc.cluster.local`.
+- [x] Point `GF_SERVER_ROOT_URL` at the public hostname so Grafana-generated
+  absolute links resolve for off-LAN users.
 
 ## First Implementation Slice
 
