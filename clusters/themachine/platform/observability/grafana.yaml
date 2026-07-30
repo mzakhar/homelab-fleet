@@ -20,7 +20,9 @@ data:
         url: http://tempo:3200
         jsonData:
           tracesToMetrics:
-            datasourceUid: prometheus
+            # Datasource uids are case-sensitive; this must match uid: Prometheus
+            # above or the traces-to-metrics link silently resolves to nothing.
+            datasourceUid: Prometheus
           tracesToLogsV2:
             datasourceUid: Loki
             spanStartTimeShift: -5m
@@ -581,7 +583,7 @@ spec:
         # Dashboards mount with subPath, and subPath volume mounts never receive
         # ConfigMap updates. Bump this on every dashboard or datasource change
         # or the running pod keeps serving the old set.
-        homelab.zakharhome.org/grafana-provisioning-version: "2026-07-30-services-red-1"
+        homelab.zakharhome.org/grafana-provisioning-version: "2026-07-30-traces-to-metrics-uid-1"
       labels:
         app.kubernetes.io/name: grafana
     spec:
