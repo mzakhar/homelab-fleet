@@ -113,7 +113,7 @@
     - Service Status:
         id: service-status
         icon: mdi-heart-pulse
-        href: http://192.168.1.3:30081
+        href: https://uptime.zakharhome.org
         description: Uptime Kuma, LAN-only
         widget:
           type: uptimekuma
@@ -166,7 +166,7 @@
     - Clean Mail Health:
         id: clean-mail-health
         icon: si-gmail-#ea4335
-        href: http://192.168.1.3:30300/d/services-red/services-red?var-service=clean-mail-backend
+        href: https://grafana.zakharhome.org/d/services-red/services-red?var-service=clean-mail-backend
         description: Clean Mail backend RED signal
         widget:
           type: prometheusmetric
@@ -191,7 +191,7 @@
     - themachine:
         id: themachine
         icon: mdi-kubernetes
-        href: http://192.168.1.3:30300/d/linux-hosts/linux-hosts
+        href: https://grafana.zakharhome.org/d/linux-hosts/linux-hosts
         description: k3s web-app host
         widget:
           type: prometheusmetric
@@ -212,7 +212,7 @@
     - homeserver:
         id: homeserver
         icon: mdi-server
-        href: http://192.168.1.3:30300/d/linux-hosts/linux-hosts
+        href: https://grafana.zakharhome.org/d/linux-hosts/linux-hosts
         description: Ubuntu media/NAS host
         widget:
           type: prometheusmetric
@@ -233,7 +233,7 @@
     - Cluster Pressure:
         id: cluster-pressure
         icon: mdi-gauge
-        href: http://192.168.1.3:30300/d/homelab-overview/homelab-overview
+        href: https://grafana.zakharhome.org/d/homelab-overview/homelab-overview
         description: Kubernetes availability and restarts
         widget:
           type: prometheusmetric
@@ -254,7 +254,7 @@
     - Telemetry Intake:
         id: telemetry-intake
         icon: si-opentelemetry-#f5a800
-        href: http://192.168.1.3:30300/d/telemetry-pipeline/telemetry-pipeline
+        href: https://grafana.zakharhome.org/d/telemetry-pipeline/telemetry-pipeline
         description: OTLP collector and Tempo pipeline
         widget:
           type: prometheusmetric

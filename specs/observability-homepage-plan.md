@@ -29,16 +29,29 @@ Deployed on `themachine`:
 - Node exporter on `themachine` and `homeserver`.
 - Homepage cards for host metrics, Uptime Kuma status, OpenTelemetry Explore, Fleet Sync, and app status checks.
 
-Current gaps:
+Current gaps, refreshed 2026-07-30 against the live cluster. Everything listed
+in the original gap list has since been closed:
 
-- Homepage observability cards are mostly links or broad summaries.
-- OpenTelemetry card has a broken/missing icon in the screenshot.
-- ~~Grafana only has a host dashboard; no app/service RED dashboard.~~ Closed
-  2026-07-30 by the `Services RED` dashboard.
-- Prometheus has no Kubernetes pod/service scrape discovery.
-- Collector receives traces/metrics, but hosted apps are not yet consistently instrumented.
-- Alert rules and first-pass notification routing are source-controlled.
-- No logs backend yet; log correlation should wait until a Loki or equivalent path exists.
+- Homepage cards, OpenTelemetry icon, Kubernetes scrape discovery, alert rules
+  and notification routing, the app/service RED dashboard, hosted-app
+  instrumentation, and the logs backend are all done. See Phases 1 through 3c
+  and the Phase 4/5/6 status notes.
+
+What is actually still open:
+
+- `clean-mail-backend` emits both legacy and stable HTTP conventions
+  (`OTEL_SEMCONV_STABILITY_OPT_IN=http/dup`). The legacy series should be
+  dropped once nothing queries them.
+- Grafana and Uptime Kuma are still LAN-only; Phase 7 protected hostnames are
+  not published.
+- No exemplar support, so jumping from a latency spike to an individual trace
+  still means a manual Tempo search.
+- Alertmanager routes everything to one receiver at one repeat interval. There
+  is no severity-based routing or quiet-hours handling.
+- ~~Log-based alerting is unavailable.~~ Closed 2026-07-30: the Loki ruler is
+  enabled and routes to Alertmanager.
+- Cloudflare Access policies for `grafana.` and `uptime.` are not yet created,
+  so those hostnames must not be published until they are.
 
 ## Design Principles
 
@@ -196,8 +209,11 @@ excluded VS Book App. Root cause was two HTTP semantic conventions live at once.
   the pinned deployment image, and verify the Flux rollout.
 - [x] Verify VS Book App traces in Tempo and RED metrics in Prometheus against
   real cluster traffic.
-- [ ] Finish Clean Mail instrumentation in its app session and apply the same
-  end-to-end checks.
+- [x] Finish Clean Mail instrumentation and apply the same end-to-end checks.
+  Verified live 2026-07-30: FastAPI/ASGI auto-instrumentation exporting over
+  OTLP/HTTP, traces in Tempo (`GET /api/triage`), RED metrics in Prometheus
+  under `clean-mail-backend`, and custom `cleanmail_*` metrics for the Gmail
+  watch, cursor age, and FCM send path. Stable HTTP conventions since Phase 3c.
 - Add app auto-instrumentation where practical:
   - HTTP server spans and `http.server.request.duration`.
   - HTTP client spans for external calls.
@@ -208,27 +224,51 @@ excluded VS Book App. Root cause was two HTTP semantic conventions live at once.
 
 ### Phase 5 - Metric to Trace Investigation
 
-- Enable Grafana Tempo service graph/traces-to-metrics only after app traces exist.
-- Add exemplar support if current Prometheus/Grafana/SDK path supports it cleanly.
-- Add dashboard links from RED panels into Tempo searches by `service.name`, `http.route`, and status/error attributes.
+Partly done ahead of this plan; status confirmed live 2026-07-30.
+
+- [x] Tempo datasource has `tracesToMetrics` and `tracesToLogsV2` configured.
+- [x] Loki datasource derives a `TraceID` field that links back into Tempo, so
+  trace and log navigation is bidirectional.
+- [x] Fix `tracesToMetrics.datasourceUid`, which read `prometheus` while the
+  datasource uid is `Prometheus`. Grafana uids are case-sensitive, so the link
+  had been resolving to nothing since it was added.
+- [ ] Define actual `tracesToMetrics` queries. The block is wired but carries no
+  query definitions, so it cannot yet jump from a span to its RED metrics.
+- [ ] Add exemplar support if the current Prometheus/Grafana/SDK path supports
+  it cleanly. Requires `--enable-feature=exemplar-storage` on Prometheus and
+  exemplar export from the Collector.
+- [ ] Add dashboard links from Services RED panels into Tempo searches by
+  `service.name`, `http.route`, and status/error attributes.
+- [ ] Consider Tempo `metrics_generator` for service graphs; it is not enabled.
 
 ### Phase 6 - Logs Later
 
-- Add Loki only when there is a clear question metrics/traces do not answer.
-- Use OTel appender/bridge or promtail/vector-style collection; do not duplicate `trace_id`/`span_id` into custom metric labels.
-- Keep logs behind Cloudflare Access or LAN-only controls.
+Done ahead of this plan. Loki and Grafana Alloy are deployed and Alloy ships
+pod logs cluster-wide.
+
+- [x] Loki deployed with 168h retention and a compactor.
+- [x] Alloy ships pod logs from 9 namespaces including `clean-mail`.
+- [x] Clean Mail logs carry `trace_id`, so log-to-trace correlation works.
+- [x] Logs stay LAN-only; Loki is a ClusterIP service.
+- [ ] Enable the Loki `ruler` with an `alertmanager_url`. A `rules_directory` is
+  configured but no ruler block exists, so no log-based alerting is possible.
 
 ### Phase 7 - Protected Investigation UIs
 
-- [ ] Publish Grafana at `grafana.zakharhome.org` behind admin-only Cloudflare
-  Access.
-- [ ] Publish Uptime Kuma at `uptime.zakharhome.org` behind admin-only
-  Cloudflare Access.
+- [x] Add the `grafana.zakharhome.org` Ingress and tunnel hostname.
+- [x] Add the `uptime.zakharhome.org` Ingress and tunnel hostname.
+- [ ] Create the admin-only Cloudflare Access policies, then run
+  `setup-tunnel.sh` to create the DNS records. Access must exist first:
+  Grafana runs with anonymous Viewer enabled and Uptime Kuma serves a public
+  status page, so Access is the only auth boundary in front of either.
 - [ ] Publish raw Prometheus UI only if it adds value beyond Grafana.
-- [ ] Keep Tempo, OTel receivers, exporters, kube-state-metrics, and Alertmanager
-  internal.
-- [ ] Change Homepage browser links to protected HTTPS hostnames while keeping
-  widget/API URLs on internal Kubernetes service DNS.
+- [x] Keep Tempo, Loki, OTel receivers, exporters, kube-state-metrics, and
+  Alertmanager internal. None have an Ingress.
+- [x] Change Homepage browser links to protected HTTPS hostnames while keeping
+  widget/API URLs on internal Kubernetes service DNS. Six `href` values moved;
+  every widget `url` still points at `*.svc.cluster.local`.
+- [x] Point `GF_SERVER_ROOT_URL` at the public hostname so Grafana-generated
+  absolute links resolve for off-LAN users.
 
 ## First Implementation Slice
 
@@ -369,8 +409,27 @@ Rollout verified on 2026-07-30 after merging PR #25:
   `>= 0` filter would hide a genuinely broken histogram behind a reassuring zero,
   and `or vector(0)` does not catch NaN since NaN is a value.
 
+Doc refresh on 2026-07-30:
+
+- Audited the whole plan against the live cluster rather than trusting the
+  checkboxes. Every item in the original "Current gaps" list had been closed by
+  Phases 1 through 3c, and Phases 5 and 6 were substantially done ahead of the
+  plan without being recorded.
+- Loki and Alloy are live, shipping pod logs from 9 namespaces, and Clean Mail
+  log lines carry `trace_id`, so Phase 6 was effectively complete.
+- Found `tracesToMetrics.datasourceUid: prometheus` against a datasource whose
+  uid is `Prometheus`. Grafana uids are case-sensitive, so that link had been
+  dead since it was written. Fixed, with the Grafana provisioning-version
+  annotation bumped so the running pod actually picks it up.
+- Rewrote "Current gaps" to list what is genuinely open instead of what was open
+  when the plan was first written.
+
 ## Decisions
 
+- 2026-07-30: Audit specs against the live cluster before trusting their
+  checkboxes. Three phases in this plan were materially out of date, in both
+  directions: work marked open was done, and a broken datasource link sat behind
+  a section that read as complete.
 - 2026-07-30: Bump a pod-template provisioning-version annotation on every
   Prometheus rule and Grafana dashboard change. Prometheus does not re-read rule
   files without a restart, and Grafana's `subPath` dashboard mounts never see

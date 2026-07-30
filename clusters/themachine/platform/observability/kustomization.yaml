@@ -12,3 +12,4 @@ resources:
   - otel-collector.yaml
   - grafana.yaml
   - uptime-kuma.yaml
+  - ingress.yaml
