@@ -189,15 +189,15 @@ data:
               description: "Uptime Kuma monitor {{ $labels.monitor_name }} is currently down."
 
       - name: apps.rules
-        # Metric name regex covers both semantic conventions in use:
-        # Python instrumentation emits http_server_duration_milliseconds_count,
-        # Node instrumentation emits http_server_request_duration_seconds_count.
+        # Stable HTTP semantic conventions only. Every instrumented app must
+        # emit http_server_request_duration_seconds with http_response_status_code;
+        # Python apps need OTEL_SEMCONV_STABILITY_OPT_IN=http or http/dup.
         rules:
           - alert: AppHttpServerErrorRate
             expr: |
-              sum by (service_name) (rate({__name__=~"http_server_(request_)?duration.*_count",service_name!="",http_status_code=~"5.."}[5m]))
+              sum by (service_name) (rate(http_server_request_duration_seconds_count{service_name!="",http_response_status_code=~"5.."}[5m]))
                 /
-              sum by (service_name) (rate({__name__=~"http_server_(request_)?duration.*_count",service_name!=""}[5m]))
+              sum by (service_name) (rate(http_server_request_duration_seconds_count{service_name!=""}[5m]))
                 > 0.05
             for: 5m
             labels:
@@ -208,9 +208,9 @@ data:
 
           - alert: AppHttpServerErrorRateCritical
             expr: |
-              sum by (service_name) (rate({__name__=~"http_server_(request_)?duration.*_count",service_name!="",http_status_code=~"5.."}[5m]))
+              sum by (service_name) (rate(http_server_request_duration_seconds_count{service_name!="",http_response_status_code=~"5.."}[5m]))
                 /
-              sum by (service_name) (rate({__name__=~"http_server_(request_)?duration.*_count",service_name!=""}[5m]))
+              sum by (service_name) (rate(http_server_request_duration_seconds_count{service_name!=""}[5m]))
                 > 0.25
             for: 5m
             labels:
@@ -221,15 +221,28 @@ data:
 
           - alert: AppHttpServerLatencyHigh
             expr: |
-              histogram_quantile(0.95, sum by (service_name, le) (rate(http_server_duration_milliseconds_bucket{service_name!=""}[5m]))) > 3000
-                or
-              1000 * histogram_quantile(0.95, sum by (service_name, le) (rate(http_server_request_duration_seconds_bucket{service_name!=""}[5m]))) > 3000
+              histogram_quantile(0.95, sum by (service_name, le) (rate(http_server_request_duration_seconds_bucket{service_name!=""}[5m]))) > 3
             for: 10m
             labels:
               severity: warning
             annotations:
               summary: "{{ $labels.service_name }} p95 latency above 3s"
               description: "{{ $labels.service_name }} p95 HTTP server latency stayed above 3 seconds for 10 minutes."
+
+          # Catches an app that silently drops off stable semconv (bad
+          # OTEL_SEMCONV_STABILITY_OPT_IN, downgrade) and would otherwise lose
+          # every app rule above without any alert firing.
+          - alert: AppMissingStableHttpMetrics
+            expr: |
+              count by (service_name) (http_server_duration_milliseconds_count{service_name!=""})
+                unless
+              count by (service_name) (http_server_request_duration_seconds_count{service_name!=""})
+            for: 30m
+            labels:
+              severity: warning
+            annotations:
+              summary: "{{ $labels.service_name }} emitting legacy HTTP metrics only"
+              description: "An app exports http_server_duration_milliseconds but no http_server_request_duration_seconds, so app error and latency rules cannot evaluate for it."
 
       - name: clean-mail.rules
         rules:
@@ -325,7 +338,7 @@ spec:
   template:
     metadata:
       annotations:
-        homelab.zakharhome.org/prometheus-config-version: "2026-07-29-app-alert-rules-1"
+        homelab.zakharhome.org/prometheus-config-version: "2026-07-30-stable-semconv-1"
       labels:
         app.kubernetes.io/name: prometheus
     spec:

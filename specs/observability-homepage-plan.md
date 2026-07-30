@@ -1,7 +1,7 @@
 # Observability Stack and Homepage Plan
 
 Status: implementation in progress
-Last updated: 2026-07-29
+Last updated: 2026-07-30
 
 ## Goal
 
@@ -33,7 +33,8 @@ Current gaps:
 
 - Homepage observability cards are mostly links or broad summaries.
 - OpenTelemetry card has a broken/missing icon in the screenshot.
-- Grafana only has a host dashboard; no app/service RED dashboard.
+- ~~Grafana only has a host dashboard; no app/service RED dashboard.~~ Closed
+  2026-07-30 by the `Services RED` dashboard.
 - Prometheus has no Kubernetes pod/service scrape discovery.
 - Collector receives traces/metrics, but hosted apps are not yet consistently instrumented.
 - Alert rules and first-pass notification routing are source-controlled.
@@ -153,16 +154,37 @@ The Phase 3 rules covered infrastructure only. Nothing alerted on application
 error conditions, so app errors stayed invisible on Homepage.
 
 - [x] Add `apps.rules` for HTTP 5xx rate (warning 5%, critical 25%) and p95
-  latency, keyed on `service_name` so every instrumented app is covered.
+  latency. Note: the 5xx rules as shipped here matched Clean Mail's label names
+  only and never covered VS Book App. Fixed in Phase 3c.
 - [x] Add `clean-mail.rules` for push send failures, Gmail watch expiry, and
   Gmail cursor lag.
 - [x] Forward parsed Alertmanager notifications from action-runner to ntfy so
   alerts leave the cluster instead of dying in an in-memory list.
 - [x] Split the Homepage `Alerts` card into critical/warning/app counts.
 - [x] Add a Homepage `Clean Mail Health` card with 5xx rate, p95, and req/s.
-- [ ] Apply the `action-runner-ntfy` secret on `themachine` and subscribe the
+- [x] Apply the `action-runner-ntfy` secret on `themachine` and subscribe the
   phone to the topic.
-- [ ] Verify a deliberately triggered alert reaches ntfy end to end.
+- [x] Verify a deliberately triggered alert reaches ntfy end to end.
+
+### Phase 3c - Normalize Semconv And Services RED
+
+Phase 3b shipped app rules keyed on Clean Mail's label names, which silently
+excluded VS Book App. Root cause was two HTTP semantic conventions live at once.
+
+- [x] Fix the label-name gap that left VS Book App without 5xx alerting.
+- [x] Set `OTEL_SEMCONV_STABILITY_OPT_IN=http/dup` on the Clean Mail backend so
+  it emits stable HTTP conventions alongside the legacy ones.
+- [x] Rewrite `apps.rules` against stable conventions only, with no metric-name
+  regex and no `or` branches.
+- [x] Add `AppMissingStableHttpMetrics` so an app that drops off stable
+  conventions is reported instead of silently losing every app rule.
+- [x] Move the Homepage Clean Mail Health card onto stable metric names.
+- [x] Add the `Services RED` Grafana dashboard with a `service` template
+  variable covering all instrumented apps.
+- [ ] Verify after rollout that `clean-mail-backend` appears in the Services RED
+  service picker and `AppMissingStableHttpMetrics` clears.
+- [ ] Switch `http/dup` to `http` once no query references
+  `http_server_duration_milliseconds_*`.
 
 ### Phase 4 - Instrument Hosted Apps
 
@@ -289,9 +311,53 @@ Progress on 2026-07-29:
   template a webhook body and ntfy would otherwise publish raw JSON.
 - Verified the ntfy formatter with an offline check covering severity mapping,
   resolved notifications, missing labels, and the unset-URL no-op.
+- Applied the `action-runner-ntfy` secret on `themachine` and confirmed alert
+  delivery end to end: a synthetic critical payload posted to
+  `/alerts/webhook` returned `ok`, stored with no `ntfyError`, and arrived as a
+  phone push.
+- Noted an unrelated pre-existing trust-boundary detail while verifying:
+  `actor()` accepts `x-authenticated-user-email` as a fallback to the
+  Cloudflare Access header, so any in-cluster caller can self-assert admin on
+  action-runner. Cloudflare Access gates the public hostname (unauthenticated
+  POST returns 302), so this is not remotely exploitable. Tracked as optional
+  hardening, not part of this work.
+
+Progress on 2026-07-30:
+
+- Found that the Phase 3b 5xx rules could only ever match `clean-mail-backend`.
+  Clean Mail labels status as `http_status_code`; VS Book App uses
+  `http_response_status_code`. Confirmed with
+  `count by (service_name) ({...,http_status_code!=""})` returning only Clean
+  Mail and the `http_response_status_code` variant returning only VS Book App.
+  The rules never fired for VS Book App and never would have.
+- Corrected an earlier claim: Clean Mail does expose a route label. It is
+  `http_target`, not `http_route`, and the values are already templated
+  (`/api/gmail/threads/{thread_id}`, `/api/senders/{sender}/route`), 12 series
+  total, so per-route panels are safe.
+- Confirmed `opentelemetry-instrumentation-{asgi,fastapi} 0.65b0` in the live
+  Clean Mail image supports `OTEL_SEMCONV_STABILITY_OPT_IN` including
+  `http/dup`, by reading `_semconv.py` in the running pod.
+- Chose `http/dup` over `http` so no signal goes blind between the rule change
+  and the pod restart. Costs a doubling of HTTP server metric series, 12 to 24.
+- Verified Clean Mail traces are live in Tempo (`GET /api/triage` at 75ms), so
+  Phase 4's Clean Mail instrumentation is further along than its checkbox shows.
+- Validated every new rule and dashboard query against live Prometheus.
+  `AppMissingStableHttpMetrics` currently returns one series,
+  `clean-mail-backend`, which is the expected pre-rollout state and should clear
+  once the backend restarts with the new env var.
 
 ## Decisions
 
+- 2026-07-30: Standardize on stable HTTP semantic conventions for all app
+  metrics. Rules and dashboards target `http_server_request_duration_seconds`
+  with `http_route` and `http_response_status_code` only. Supporting two
+  conventions in every query is what hid the VS Book App alerting gap.
+- 2026-07-30: Build one `Services RED` dashboard with a `service` template
+  variable rather than a dashboard per app. Clean Mail's custom Gmail pipeline
+  metrics get a single clearly labelled panel on it.
+- 2026-07-30: Alert on the absence of stable HTTP metrics. A rule that matches
+  nothing is indistinguishable from a healthy service, which is exactly how the
+  Phase 3b gap stayed invisible.
 - 2026-07-29: Route ntfy pushes through action-runner's existing
   `/alerts/webhook` handler instead of adding an Alertmanager receiver.
   Alertmanager has no body templating for webhooks, so a direct receiver would

@@ -256,6 +256,220 @@ data:
         }
       ]
     }
+  services-red.json: |
+    {
+      "uid": "services-red",
+      "title": "Services RED",
+      "tags": ["homelab", "apps"],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "time": { "from": "now-6h", "to": "now" },
+      "templating": {
+        "list": [
+          {
+            "name": "service",
+            "label": "Service",
+            "type": "query",
+            "datasource": { "type": "prometheus", "uid": "Prometheus" },
+            "query": "label_values(http_server_request_duration_seconds_count, service_name)",
+            "refresh": 2,
+            "includeAll": true,
+            "multi": true,
+            "sort": 1
+          }
+        ]
+      },
+      "panels": [
+        {
+          "type": "stat",
+          "title": "Request Rate",
+          "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "sum(rate(http_server_request_duration_seconds_count{service_name=~\"$service\"}[5m]))",
+              "legendFormat": "req/s"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "reqps", "decimals": 2 }, "overrides": [] }
+        },
+        {
+          "type": "stat",
+          "title": "Error Rate",
+          "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "100 * sum(rate(http_server_request_duration_seconds_count{service_name=~\"$service\",http_response_status_code=~\"5..\"}[5m])) / clamp_min(sum(rate(http_server_request_duration_seconds_count{service_name=~\"$service\"}[5m])), 0.0001)",
+              "legendFormat": "5xx %"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 5 },
+                  { "color": "red", "value": 25 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "type": "stat",
+          "title": "p95 Latency",
+          "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket{service_name=~\"$service\"}[5m])))",
+              "legendFormat": "p95"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "decimals": 3,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "red", "value": 3 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "type": "stat",
+          "title": "Firing App Alerts",
+          "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "sum(ALERTS{alertstate=\"firing\",alertname=~\"App.*|CleanMail.*\"}) or vector(0)",
+              "legendFormat": "firing"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "red", "value": 1 }
+                ]
+              }
+            },
+            "overrides": []
+          }
+        },
+        {
+          "type": "timeseries",
+          "title": "Request Rate by Route",
+          "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "sum by (service_name, http_route) (rate(http_server_request_duration_seconds_count{service_name=~\"$service\"}[5m]))",
+              "legendFormat": "{{service_name}} {{http_route}}"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] }
+        },
+        {
+          "type": "timeseries",
+          "title": "Responses by Status Class",
+          "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "sum by (service_name, status_class) (label_replace(rate(http_server_request_duration_seconds_count{service_name=~\"$service\"}[5m]), \"status_class\", \"$1xx\", \"http_response_status_code\", \"(.)..\"))",
+              "legendFormat": "{{service_name}} {{status_class}}"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] }
+        },
+        {
+          "type": "timeseries",
+          "title": "Latency Percentiles",
+          "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "histogram_quantile(0.50, sum by (le) (rate(http_server_request_duration_seconds_bucket{service_name=~\"$service\"}[5m])))",
+              "legendFormat": "p50"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket{service_name=~\"$service\"}[5m])))",
+              "legendFormat": "p95"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_request_duration_seconds_bucket{service_name=~\"$service\"}[5m])))",
+              "legendFormat": "p99"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] }
+        },
+        {
+          "type": "table",
+          "title": "Slowest Routes p95",
+          "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "topk(10, histogram_quantile(0.95, sum by (service_name, http_route, le) (rate(http_server_request_duration_seconds_bucket{service_name=~\"$service\"}[5m]))))",
+              "format": "table",
+              "instant": true
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "s", "decimals": 3 }, "overrides": [] }
+        },
+        {
+          "type": "timeseries",
+          "title": "5xx by Route",
+          "gridPos": { "x": 0, "y": 20, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "sum by (service_name, http_route) (rate(http_server_request_duration_seconds_count{service_name=~\"$service\",http_response_status_code=~\"5..\"}[5m]))",
+              "legendFormat": "{{service_name}} {{http_route}}"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] }
+        },
+        {
+          "type": "timeseries",
+          "title": "Clean Mail Gmail Pipeline",
+          "description": "Durations only. FCM send failures are covered by the CleanMailFcmSendFailing alert; a rate series would clash with the seconds unit here.",
+          "gridPos": { "x": 12, "y": 20, "w": 12, "h": 8 },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "min(cleanmail_gmail_watch_expiration_seconds)",
+              "legendFormat": "watch expires in"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "Prometheus" },
+              "expr": "histogram_quantile(0.9, sum by (le) (rate(cleanmail_gmail_cursor_age_seconds_bucket[15m])))",
+              "legendFormat": "cursor age p90"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] }
+        }
+      ]
+    }
   telemetry-pipeline.json: |
     {
       "uid": "telemetry-pipeline",
@@ -363,6 +577,11 @@ spec:
       app.kubernetes.io/name: grafana
   template:
     metadata:
+      annotations:
+        # Dashboards mount with subPath, and subPath volume mounts never receive
+        # ConfigMap updates. Bump this on every dashboard or datasource change
+        # or the running pod keeps serving the old set.
+        homelab.zakharhome.org/grafana-provisioning-version: "2026-07-30-services-red-1"
       labels:
         app.kubernetes.io/name: grafana
     spec:
@@ -423,6 +642,9 @@ spec:
             - name: provisioning
               mountPath: /var/lib/grafana/dashboards/telemetry-pipeline.json
               subPath: telemetry-pipeline.json
+            - name: provisioning
+              mountPath: /var/lib/grafana/dashboards/services-red.json
+              subPath: services-red.json
       volumes:
         - name: data
           persistentVolumeClaim:

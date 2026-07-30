@@ -67,6 +67,15 @@ spec:
               value: clean-mail-backend
             - name: OTEL_TRACES_SAMPLER
               value: parentbased_always_on
+            # Emit stable HTTP semantic conventions alongside the legacy ones so
+            # this app shares label names with vs-book-app. Rules, Homepage
+            # cards, and the Services RED dashboard target the stable names.
+            # ponytail: http/dup doubles HTTP server metric series (12 -> 24
+            # here) to avoid a blind window during the switch. Change to "http"
+            # once nothing queries http_server_duration_milliseconds_* and the
+            # 30 day legacy history is no longer wanted.
+            - name: OTEL_SEMCONV_STABILITY_OPT_IN
+              value: http/dup
           volumeMounts:
             - name: data
               mountPath: /data
