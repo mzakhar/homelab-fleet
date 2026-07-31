@@ -340,7 +340,7 @@ spec:
   template:
     metadata:
       annotations:
-        homelab.zakharhome.org/prometheus-config-version: "2026-07-30-stable-semconv-1"
+        homelab.zakharhome.org/prometheus-config-version: "2026-07-30-public-kuma-alerts-1"
       labels:
         app.kubernetes.io/name: prometheus
     spec:
