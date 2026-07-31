@@ -158,6 +158,8 @@ Pipeline health dashboard:
   - Pod restart spike.
   - Collector refused spans/metrics.
 - [x] Add Uptime Kuma critical monitor alert integration.
+- [ ] Add Cloudflare Access service-token probes for protected public routes,
+  then restore those routes to paging once authenticated checks are reliable.
 - [x] Route notifications to a low-noise target first.
 - [x] Add Homepage alert count card.
 
@@ -473,3 +475,8 @@ Doc refresh on 2026-07-30:
 - 2026-07-21: Show root Flux Kustomization `lastReconciled` time on Homepage
   Fleet Sync card so routine scheduled runs remain visible even without a state
   transition or new Git revision.
+- 2026-07-30: Exclude Cloudflare Access-protected dashboard and Clean Mail
+  browser routes from Uptime Kuma until authenticated service-token probes exist.
+- 2026-07-30: Keep Cloudflare-fronted public monitor history in Uptime Kuma,
+  but exclude its `Public services` group from paging; only direct LAN and host
+  monitor failures notify through Alertmanager/ntfy.
