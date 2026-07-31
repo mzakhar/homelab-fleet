@@ -180,7 +180,9 @@ data:
               description: "Action Runner cannot read the Uptime Kuma homelab status page."
 
           - alert: UptimeKumaMonitorDown
-            expr: uptime_kuma_monitor_up == 0
+            # Public probes traverse Cloudflare and are intentionally advisory.
+            # Kuma retains their event history; page only direct LAN/host checks.
+            expr: uptime_kuma_monitor_up{group!="Public services"} == 0
             for: 2m
             labels:
               severity: critical

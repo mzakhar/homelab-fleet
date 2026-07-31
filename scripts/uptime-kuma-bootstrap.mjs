@@ -14,8 +14,8 @@ if (!password) {
 const monitors = [
   http("Zakharhome apex", "https://zakharhome.org"),
   http("Zakharhome www", "https://www.zakharhome.org"),
-  http("Dashboard Access", "https://dashboard.zakharhome.org"),
-  http("Clean Mail Access", "https://cleanmail.zakharhome.org"),
+  // Cloudflare Access blocks unauthenticated Kuma probes. Add service-token
+  // monitors when an authenticated check exists.
   http("Synth public", "https://synth.zakharhome.org"),
   http("Books public", "https://books.zakharhome.org/books/"),
   http("Grafana LAN", "http://192.168.1.3:30300/api/health"),
