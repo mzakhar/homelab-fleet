@@ -115,7 +115,7 @@ data:
     // forwarded once Alloy and Loki return.
     loki.source.journal "host" {
       path       = "/var/log/journal"
-      max_age    = "7d"
+      max_age    = "168h"
       labels     = {host = sys.env("NODE_NAME")}
       forward_to = [loki.write.default.receiver]
     }
@@ -141,7 +141,7 @@ spec:
     metadata:
       annotations:
         # ConfigMap is mounted with subPath; bump to roll Alloy on config changes.
-        homelab.zakharhome.org/alloy-config-version: "2026-07-31-host-journal-1"
+        homelab.zakharhome.org/alloy-config-version: "2026-07-31-host-journal-2"
       labels:
         app.kubernetes.io/name: alloy
     spec:
