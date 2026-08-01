@@ -111,6 +111,15 @@ data:
       forward_to = [loki.write.default.receiver]
     }
 
+    // Persistent host journal: queued entries survive a hard reboot and are
+    // forwarded once Alloy and Loki return.
+    loki.source.journal "host" {
+      path       = "/var/log/journal"
+      max_age    = "7d"
+      labels     = {host = sys.env("NODE_NAME")}
+      forward_to = [loki.write.default.receiver]
+    }
+
     loki.write "default" {
       endpoint {
         url = "http://loki:3100/loki/api/v1/push"
@@ -130,6 +139,9 @@ spec:
       app.kubernetes.io/name: alloy
   template:
     metadata:
+      annotations:
+        # ConfigMap is mounted with subPath; bump to roll Alloy on config changes.
+        homelab.zakharhome.org/alloy-config-version: "2026-07-31-host-journal-1"
       labels:
         app.kubernetes.io/name: alloy
     spec:
@@ -149,6 +161,11 @@ spec:
           ports:
             - name: http
               containerPort: 12345
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
           readinessProbe:
             httpGet:
               path: /-/ready

@@ -1,7 +1,7 @@
 # Observability Stack and Homepage Plan
 
 Status: implementation in progress
-Last updated: 2026-07-30
+Last updated: 2026-07-31
 
 ## Goal
 
@@ -27,6 +27,8 @@ Deployed on `themachine`:
 - OpenTelemetry Collector accepting OTLP gRPC/HTTP inside the cluster and through LAN NodePorts.
 - Uptime Kuma with a `homelab` status page.
 - Node exporter on `themachine` and `homeserver`.
+- Alloy ships persistent host systemd-journal entries to Loki after recovery.
+- Prometheus alerts when a host boot time changes.
 - Homepage cards for host metrics, Uptime Kuma status, OpenTelemetry Explore, Fleet Sync, and app status checks.
 
 Current gaps, refreshed 2026-07-30 against the live cluster. Everything listed
@@ -427,6 +429,11 @@ Doc refresh on 2026-07-30:
   when the plan was first written.
 
 ## Decisions
+
+- 2026-07-31: Ship persistent host journals through the existing Alloy DaemonSet
+  and alert on `node_boot_time_seconds` changes. This records hard-loss evidence
+  after recovery without adding another host agent. The stack cannot alert while
+  `themachine` itself is down; UPS telemetry remains a separate future addition.
 
 - 2026-07-30: Audit specs against the live cluster before trusting their
   checkboxes. Three phases in this plan were materially out of date, in both
