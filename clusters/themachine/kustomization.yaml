@@ -9,6 +9,7 @@ resources:
   # through the soak period — see specs/Deploy Authority Migration - Clean Mail.md).
   - apps/clean-mail
   - apps/synth.yaml
+  - apps/family-hub.yaml
   - platform/action-runner
   - platform/observability
   - platform/homepage
