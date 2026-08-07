@@ -28,6 +28,7 @@ HOSTNAMES=(
   "dashboard.${ZONE_NAME}"
   "homeassistant.${ZONE_NAME}"
   "actions.${ZONE_NAME}"
+  "hub.${ZONE_NAME}"
   # Investigation UIs. Both rely entirely on Cloudflare Access: Grafana runs
   # with anonymous Viewer enabled and Uptime Kuma serves a public status page.
   # Create the admin-only Access policy before running this script for them.
