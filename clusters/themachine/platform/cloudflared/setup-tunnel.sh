@@ -7,7 +7,13 @@
 #
 # Requires: curl, jq, and CLOUDFLARE_API_TOKEN with scopes:
 #   Account > Cloudflare Tunnel > Edit
+#   Zone    > Zone              > Read   (zone: zakharhome.org)
 #   Zone    > DNS               > Edit   (zone: zakharhome.org)
+#
+# Zone > Read is needed for the GET /zones lookup below; DNS > Edit does not
+# imply it. Without it the very first call fails with Cloudflare error 9109
+# "Invalid access token", which reads like a bad token value but is a missing
+# permission on an otherwise valid token.
 #
 # Usage: CLOUDFLARE_API_TOKEN=... ./setup-tunnel.sh
 set -euo pipefail
