@@ -99,7 +99,10 @@ Two ways to close it when it matters:
 
 ## Follow-ups
 
-- `Home LAN bypass` still exists as a reusable policy and is now attached to
-  nothing. Delete it, or it will get reused and reintroduce the stale-IP hole.
+- `Home LAN bypass` reusable policy deleted 2026-08-06 once nothing referenced
+  it. Do not recreate an IP-pinned Bypass rule; use the tailnet path instead.
 - Adding another service to the tailnet path is one more `address=/…/` line plus
   a dnsmasq restart. The Tailscale split-DNS entry already covers the whole zone.
+- The tunnel token was exposed in a chat transcript on 2026-08-06 and needs
+  rotating — delete the tunnel and re-run `setup-tunnel.sh`, which recreates it
+  and rewrites all twelve CNAMEs to the new tunnel ID.
