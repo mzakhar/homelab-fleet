@@ -29,8 +29,14 @@ Last updated: 2026-07-31
   Traefik answers 443 on that hostname with `CN=TRAEFIK DEFAULT CERT` and
   Chromium refuses it; plain HTTP is no escape either, since `PUBLIC_ORIGIN` is
   `https://`, which makes the session cookie `Secure` and sends the OIDC
-  redirect to `https://` anyway. Blocked on a real cert — cert-manager is not
-  installed on the cluster as of 2026-08-08.
+  redirect to `https://` anyway. Blocked on a real cert.
+- cert-manager v1.21.1 and the `letsencrypt-prod` ClusterIssuer went in
+  2026-08-08 (`#49`, ordering fixed in `#50`); the issuer is Ready with its ACME
+  account registered. Two things still gate an actual certificate: the
+  `cloudflare-api-token` secret has not been applied to the `cert-manager`
+  namespace, and nothing requests a cert yet — the `tls:` block and
+  `cert-manager.io/cluster-issuer` annotation live in `mzakhar/family-hub` at
+  `deploy/k8s/app.yaml`, not in this repo.
 - Kiosk autostart installed 2026-08-08 as
   `~/.config/autostart/family-hub-kiosk.desktop` on `kitchen-hub`
   (`lwrespawn` + `chromium --kiosk`). Unverified end to end: the Pi is still
