@@ -99,10 +99,12 @@ Two ways to close it when it matters:
 
 ## Follow-ups
 
-- `Home LAN bypass` still exists as a reusable policy and is now attached to
-  nothing. Delete it, or it will get reused and reintroduce the stale-IP hole.
+- ~~`Home LAN bypass` still exists as a reusable policy and is now attached to
+  nothing. Delete it~~ — deleted 2026-08-06.
 - Adding another service to the tailnet path is one more `address=/…/` line plus
-  a dnsmasq restart. The Tailscale split-DNS entry already covers the whole zone.
+  a dnsmasq restart, **but only for apps that tolerate the origin they get.** The
+  Tailscale split-DNS entry covers the whole zone; the app's own origin handling
+  is the part that varies. See the 2026-08-08 section below before adding a line.
 
 ---
 
