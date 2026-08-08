@@ -1,0 +1,23 @@
+# The ClusterIssuer is a custom resource whose CRD is installed by the HelmRelease in
+# this same directory. kustomize-controller dry-runs an entire Kustomization before
+# applying any of it, so keeping the two together deadlocks the fleet: the ClusterIssuer
+# fails validation because the CRD is missing, the failed dry-run stops the HelmRelease
+# from being applied, and the HelmRelease is the only thing that would create the CRD.
+# That is not theoretical — it happened on the merge of #49.
+#
+# Splitting the CR into its own Flux Kustomization contains the failure. This one retries
+# on its own interval until cert-manager has installed the CRD, and its NotReady status
+# never blocks the root kustomization or any other app in the fleet.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cert-manager-issuers
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 1m
+  path: ./clusters/themachine/platform/cert-manager/issuers
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
