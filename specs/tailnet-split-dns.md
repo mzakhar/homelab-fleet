@@ -84,11 +84,15 @@ From themachine, confirming the resolver is not exposed on the LAN:
 dig homeassistant.zakharhome.org @192.168.1.3  -> connection refused
 ```
 
-## Known Gap
+## Known Gap — closed 2026-08-08 for `hub`, still open for `homeassistant`
 
 HTTPS does not work on the tailnet path. Cloudflare was terminating TLS, and
 Traefik holds no certificate for this hostname, so tailnet clients get plain
 HTTP. WireGuard still encrypts the transport, but the app sees `http://`.
+
+`hub.zakharhome.org` now has a real certificate — see the 2026-08-08 section
+below. Home Assistant still runs on the plain-HTTP tailnet path; closing it there
+is one more ingress annotation whenever it is wanted.
 
 Two ways to close it when it matters:
 
@@ -126,7 +130,8 @@ Manifests live in `clusters/themachine/platform/cert-manager/`:
 |---|---|
 | `helmrepository.yaml` | jetstack charts, `flux-system` namespace |
 | `helmrelease.yaml` | cert-manager v1.21.1, CRDs installed by the chart |
-| `clusterissuer.yaml` | `letsencrypt-prod`, ACME DNS-01 against Cloudflare |
+| `issuers/clusterissuer.yaml` | `letsencrypt-prod`, ACME DNS-01 against Cloudflare |
+| `issuers-sync.yaml` | separate Flux Kustomization for the issuers — see the deadlock below |
 | `cloudflare-api-token.template.yaml` | reference only — filled and applied by hand |
 
 **DNS-01, not HTTP-01.** An HTTP-01 challenge has to reach Traefik from the public
@@ -149,3 +154,32 @@ The certificate itself is requested from the app repo, not from here: the ingres
 `cert-manager.io/cluster-issuer` annotation and a `tls:` block, and cert-manager's
 ingress-shim turns that into a Certificate. The `:80` router is untouched, so the
 Cloudflare Tunnel keeps using it exactly as before.
+
+### Done 2026-08-08
+
+cert-manager v1.21.1 installed, `letsencrypt-prod` Ready, `hub-tls` issued in 75 s,
+`address=/hub.zakharhome.org/100.67.221.109` added. Verified from `kitchen-hub`:
+resolves to the tailnet address, serves `CN=hub.zakharhome.org` issued by Let's
+Encrypt, `/api/health` returns 200 with a validated chain and no Access redirect. The
+`:80` router is unchanged and the tunnel path still answers, so off-tailnet clients are
+unaffected.
+
+Three things worth not rediscovering:
+
+- **A ClusterIssuer cannot share a Flux Kustomization with the HelmRelease that installs
+  its CRD.** kustomize-controller dry-runs the whole Kustomization before applying any of
+  it, so the CR fails validation, the failed dry-run stops the HelmRelease, and the
+  HelmRelease is the only thing that would create the CRD. It deadlocked the *root*
+  Kustomization on the merge of #49 — every app in the fleet stopped reconciling, not
+  just cert-manager. Fixed in #50 by splitting the issuers into their own Kustomization
+  that retries on its own interval.
+- **`address=` overrides A and forwards AAAA.** dnsmasq answered the A from config and
+  passed the AAAA upstream to Cloudflare, so a client with working IPv6 would silently
+  return to the tunnel + Access path. It only looked correct because `kitchen-hub` has no
+  public IPv6 route. Traefik does not listen on themachine's tailnet IPv6, so the fix is
+  `local=/<name>/` — answer from config only, never forward, NODATA on AAAA. Both names
+  carry it now. **Any future `address=/…/` line needs the matching `local=/…/`.**
+- **Do not leave a backup inside `/etc/dnsmasq.d/`.** Debian's `conf-dir` excludes `.bak`
+  but not `.bak-2026-08-08`, so a dated backup is loaded as live config — the tell was
+  `homeassistant` resolving to a duplicated A record. Backups belong outside the
+  directory.
