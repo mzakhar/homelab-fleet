@@ -103,3 +103,47 @@ Two ways to close it when it matters:
   nothing. Delete it, or it will get reused and reintroduce the stale-IP hole.
 - Adding another service to the tailnet path is one more `address=/…/` line plus
   a dnsmasq restart. The Tailscale split-DNS entry already covers the whole zone.
+
+---
+
+## Closing the TLS gap (2026-08-08) — cert-manager DNS-01
+
+The second option above is now built, driven by `hub.zakharhome.org` rather than by
+Home Assistant. **Home Assistant tolerates the plain-HTTP tailnet path; Family Hub
+cannot.** Its `PUBLIC_ORIGIN` is `https://hub.zakharhome.org`, which makes the session
+cookie `Secure` — a browser on `http://` never stores it — and its OAuth `redirect_uri`
+sends the browser to `https://` no matter which way it arrived. Adding an `address=/…/`
+line for `hub` without a certificate produces a wall screen that cannot log in.
+
+So the rule for every future service on the tailnet path: **check whether the app pins
+an https origin before adding its dnsmasq line.**
+
+Manifests live in `clusters/themachine/platform/cert-manager/`:
+
+| File | What |
+|---|---|
+| `helmrepository.yaml` | jetstack charts, `flux-system` namespace |
+| `helmrelease.yaml` | cert-manager v1.21.1, CRDs installed by the chart |
+| `clusterissuer.yaml` | `letsencrypt-prod`, ACME DNS-01 against Cloudflare |
+| `cloudflare-api-token.template.yaml` | reference only — filled and applied by hand |
+
+**DNS-01, not HTTP-01.** An HTTP-01 challenge has to reach Traefik from the public
+internet, and every `zakharhome.org` hostname sits behind Cloudflare Access — the
+challenge path would need its own bypass policy, which is exactly the construct this
+spec exists to retire. DNS-01 also issues for hostnames that are not publicly reachable
+at all, which is the point of the tailnet path.
+
+**This is the fleet's first HelmRelease**; every other app here is plain manifests.
+cert-manager ships as a chart plus a CRD set that must be installed and upgraded
+together, and vendoring its ~5 MB static manifest into git to avoid one chart is the
+worse trade.
+
+The token is a zone-scoped Cloudflare API token (`Zone/DNS/Edit` + `Zone/Zone/Read` on
+`zakharhome.org`), **not** the Global API Key — the Global Key would authenticate
+deleting the tunnel and the Access policies too.
+
+The certificate itself is requested from the app repo, not from here: the ingress in
+`mzakhar/family-hub` at `deploy/k8s/app.yaml` carries the
+`cert-manager.io/cluster-issuer` annotation and a `tls:` block, and cert-manager's
+ingress-shim turns that into a Certificate. The `:80` router is untouched, so the
+Cloudflare Tunnel keeps using it exactly as before.

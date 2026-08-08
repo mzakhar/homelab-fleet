@@ -1,0 +1,25 @@
+# Reference only — NEVER applied by Flux (not listed in kustomization.yaml).
+# Copy to cloudflare-api-token.yaml, fill in the value, apply manually on themachine.
+# Never commit the filled copy to git.
+#
+# Mint at Cloudflare dashboard → My Profile → API Tokens → Create Token → Custom:
+#   Permissions:  Zone / DNS   / Edit
+#                 Zone / Zone  / Read
+#   Zone Resources: Include / Specific zone / zakharhome.org
+#
+# This is a scoped API *token*, not the Global API Key. The Global Key authenticates
+# every Cloudflare operation on the account, including deleting the tunnel and the
+# Access policies; a zone-scoped token can only write DNS records in one zone, which
+# is exactly what an ACME DNS-01 challenge needs.
+#
+# The secret lives in cert-manager's namespace because the solver is on a
+# ClusterIssuer — a namespaced Issuer would read it from the app's namespace instead.
+#
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudflare-api-token
+  namespace: cert-manager
+type: Opaque
+stringData:
+  api-token: ""
