@@ -4,6 +4,8 @@ resources:
   - namespace.yaml
   - helmrepository.yaml
   - helmrelease.yaml
-  - clusterissuer.yaml
+  - issuers-sync.yaml
+# clusterissuer.yaml moved to issuers/ and is applied by the separate
+# cert-manager-issuers Kustomization — see issuers-sync.yaml for why.
 # cloudflare-api-token.template.yaml is deliberately absent — it holds a secret and is
 # applied by hand, same rule as clean-mail/secret.template.yaml.
