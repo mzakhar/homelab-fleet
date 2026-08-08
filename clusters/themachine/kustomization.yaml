@@ -10,6 +10,7 @@ resources:
   - apps/clean-mail
   - apps/synth.yaml
   - apps/family-hub.yaml
+  - platform/cert-manager
   - platform/action-runner
   - platform/observability
   - platform/homepage

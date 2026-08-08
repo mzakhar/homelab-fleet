@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - helmrepository.yaml
+  - helmrelease.yaml
+  - clusterissuer.yaml
+# cloudflare-api-token.template.yaml is deliberately absent — it holds a secret and is
+# applied by hand, same rule as clean-mail/secret.template.yaml.
