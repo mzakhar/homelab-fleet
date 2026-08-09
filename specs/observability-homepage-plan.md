@@ -428,7 +428,47 @@ Doc refresh on 2026-07-30:
 - Rewrote "Current gaps" to list what is genuinely open instead of what was open
   when the plan was first written.
 
+Progress on 2026-08-09:
+
+- Reviewed the 24h feed after a ~22h Gmail push outage. Detection worked and
+  notification worked; only the diagnosis was wrong for two days.
+  `CleanMailGmailWatchExpiring` fired critical for 45.5h and pushed to ntfy four
+  times, all with `ntfyError=None`.
+- Root cause was not a stalled renewal job. The hourly job ran every tick and
+  failed on a dead persistent OAuth grant for one of two Gmail accounts.
+  `cleanmail_oauth_refresh_total{outcome="invalid_grant",purpose="background"}`
+  reached 183 and `cleanmail_gmail_watch_renewals_total{outcome="failure"}`
+  reached 11 while the completion log line read `outcome: success, renewed: 0`
+  every hour. The expiry gauge is `min()` across accounts, so one dead account
+  drove it to -21.9h while the other account stayed healthy.
+- Added `CleanMailGmailWatchRenewalFailing` on the already-exported failure
+  counter. Backtested over the incident: it would have fired from the start of
+  the retained window through 08-08 23:43, roughly 12 hours before the watch
+  gauge went negative, and cleared on its own when the grant was restored.
+- Found Alertmanager was never a scrape target.
+  `alertmanager_notifications_failed_total` existed on the pod and had no series
+  in Prometheus, so no rule could watch the alert path. Annotated the Service
+  for the existing `kubernetes-service-endpoints` job.
+- Found ntfy delivery had failed silently on 08-06 between 08:51 and 10:51 with
+  `<urlopen error [Errno -3] Try again>`, dropping nine notifications covering
+  `KubernetesDeploymentUnavailable` and `KubernetesPodRestartSpike`. The failure
+  was recorded only as an `ntfyError` string on an in-memory list. Added
+  `action_runner_ntfy_publish_total` and an alert on it.
+- Validated all three new expressions against live Prometheus before shipping.
+  All evaluate empty on the current healthy fleet.
+
 ## Decisions
+
+- 2026-08-09: Alert on the delivery path, not only on the things it carries.
+  Both new pipeline rules describe a hop they cannot themselves page through —
+  a dead ntfy hop cannot deliver news that ntfy is dead. They are still worth
+  having: they surface on the Homepage alert count and in Grafana, where a
+  silent delivery failure previously left no trace outside an in-memory field.
+- 2026-08-09: Prefer alerting on an app's own failure counter over the gauge it
+  eventually moves. `cleanmail_gmail_watch_renewals_total{outcome="failure"}`
+  was already exported and unread; watching it buys ~2 days of lead time over
+  the expiry gauge, and a gauge aggregated with `min()` across accounts hides
+  which account is broken.
 
 - 2026-07-31: Ship persistent host journals through the existing Alloy DaemonSet
   and alert on `node_boot_time_seconds` changes. This records hard-loss evidence

@@ -98,6 +98,13 @@ metadata:
   namespace: observability
   labels:
     app.kubernetes.io/name: alertmanager
+  annotations:
+    # Picked up by the kubernetes-service-endpoints scrape job. Without this,
+    # alertmanager_notifications_failed_total exists on the pod but not in
+    # Prometheus, so nothing can alert on the alert path itself.
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "9093"
 spec:
   type: ClusterIP
   selector:

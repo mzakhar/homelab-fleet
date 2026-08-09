@@ -198,6 +198,31 @@ data:
               summary: "Uptime Kuma monitor down"
               description: "Uptime Kuma monitor {{ $labels.monitor_name }} is currently down."
 
+      # The alert path watching itself. Neither of these can page through the
+      # path they describe: a broken ntfy hop cannot deliver news that ntfy is
+      # broken. They surface on the Homepage alert count and in Grafana, which
+      # is the point — a silent delivery failure previously left no trace at
+      # all outside an in-memory field on action-runner.
+      - name: alerting-pipeline.rules
+        rules:
+          - alert: AlertmanagerNotificationsFailing
+            expr: sum(increase(alertmanager_notifications_failed_total[15m])) > 0
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Alertmanager cannot deliver notifications"
+              description: "Alertmanager notification delivery failed in the last 15 minutes; alerts are firing but not reaching their receiver."
+
+          - alert: ActionRunnerNtfyPushFailing
+            expr: increase(action_runner_ntfy_publish_total{outcome="failure"}[15m]) > 0
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Alert push to ntfy failing"
+              description: "Action Runner accepted Alertmanager notifications but could not push them to ntfy; alerts are not reaching the phone."
+
       - name: apps.rules
         # Stable HTTP semantic conventions only. Every instrumented app must
         # emit http_server_request_duration_seconds with http_response_status_code;
@@ -264,6 +289,21 @@ data:
             annotations:
               summary: "Clean Mail push delivery failing"
               description: "Clean Mail FCM send attempts returned a non-success outcome over the last 10 minutes."
+
+          # Leading indicator for CleanMailGmailWatchExpiring below. On
+          # 2026-08-08 the watch sat expired for ~22h while every hourly
+          # renewal tick failed on a dead OAuth grant for one of two accounts;
+          # this counter was already being exported and nothing read it. The
+          # expiry gauge is min() across accounts, so a single dead account
+          # drags it negative — catch the failing renewals ~2 days earlier.
+          - alert: CleanMailGmailWatchRenewalFailing
+            expr: sum(increase(cleanmail_gmail_watch_renewals_total{outcome="failure"}[1h])) > 0
+            for: 15m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Clean Mail Gmail watch renewal failing"
+              description: "Gmail watch renewal returned a failure outcome in the last hour; the watch will expire unless renewal recovers."
 
           # Gauge is seconds remaining until expiry, not an absolute epoch —
           # live value 536400 (~6.2 days). Do not subtract time() here.
@@ -348,7 +388,7 @@ spec:
   template:
     metadata:
       annotations:
-        homelab.zakharhome.org/prometheus-config-version: "2026-07-31-host-reboot-alert-1"
+        homelab.zakharhome.org/prometheus-config-version: "2026-08-09-alerting-pipeline-rules-1"
       labels:
         app.kubernetes.io/name: prometheus
     spec:
