@@ -1,0 +1,9 @@
+[Unit]
+Description=Refresh Kitchen Hub kiosk health metrics
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=1min
+
+[Install]
+WantedBy=timers.target

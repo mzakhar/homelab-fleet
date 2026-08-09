@@ -1,0 +1,6 @@
+[Unit]
+Description=Write Kitchen Hub kiosk health metrics
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/kitchen-hub/kiosk-health.sh

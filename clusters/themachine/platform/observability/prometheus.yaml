@@ -35,6 +35,11 @@ data:
             labels:
               instance: homeserver
               role: media-nas
+          - targets:
+              - "192.168.1.48:9100"
+            labels:
+              instance: kitchen-hub
+              role: kitchen-kiosk
 
       - job_name: otel-collector
         static_configs:
@@ -132,6 +137,24 @@ data:
             annotations:
               summary: "Host rebooted"
               description: "{{ $labels.instance }} boot time changed in the last 15 minutes."
+
+          - alert: KitchenHubTouchscreenMissing
+            expr: kitchen_hub_touchscreen_present == 0
+            for: 2m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Kitchen Hub touchscreen missing"
+              description: "kitchen-hub no longer sees the ILITEK USB touchscreen."
+
+          - alert: KitchenHubKioskUnavailable
+            expr: kitchen_hub_kiosk_healthy == 0
+            for: 2m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Kitchen Hub kiosk unavailable"
+              description: "kitchen-hub Chromium kiosk or screen-policy timer is not healthy."
 
           - alert: NodeFilesystemAlmostFull
             expr: 100 * (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) > 85

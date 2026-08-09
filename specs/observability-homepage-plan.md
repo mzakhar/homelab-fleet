@@ -30,6 +30,9 @@ Deployed on `themachine`:
 - Alloy ships persistent host systemd-journal entries to Loki after recovery.
 - Prometheus alerts when a host boot time changes.
 - Homepage cards for host metrics, Uptime Kuma status, OpenTelemetry Explore, Fleet Sync, and app status checks.
+- `kitchen-hub` exports host metrics through node exporter. Its touchscreen,
+  HDMI, and kiosk state are low-cardinality textfile gauges; persistent journal
+  logs ship to Loki through Grafana Alloy's LAN-only receiver.
 
 Current gaps, refreshed 2026-07-30 against the live cluster. Everything listed
 in the original gap list has since been closed:
