@@ -411,7 +411,7 @@ spec:
   template:
     metadata:
       annotations:
-        homelab.zakharhome.org/prometheus-config-version: "2026-08-09-alerting-pipeline-rules-1"
+        homelab.zakharhome.org/prometheus-config-version: "2026-08-09-kitchen-hub-1"
       labels:
         app.kubernetes.io/name: prometheus
     spec:
