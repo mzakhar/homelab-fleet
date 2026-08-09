@@ -15,6 +15,11 @@ CA = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 CTX = ssl.create_default_context(cafile=CA)
 AUDIT = []
 ALERT_NOTIFICATIONS = []
+# Exported as action_runner_ntfy_publish_total. A failed push used to be
+# recorded only as an ntfyError string in the in-memory list above, so the
+# 2026-08-06 DNS outage silently dropped 9 alerts with no signal anywhere.
+# In-memory, so it resets on restart; increase() handles counter resets.
+NTFY_RESULTS = {"success": 0, "failure": 0}
 NTFY_URL = os.getenv("NTFY_URL", "").strip()
 UPTIME_KUMA_STATUS_URL = os.getenv(
     "UPTIME_KUMA_STATUS_URL",
@@ -137,7 +142,12 @@ def ntfy_publish(notification):
             "Tags": "rotating_light" if critical else ("warning" if firing else "white_check_mark"),
         },
     )
-    urllib.request.urlopen(req, timeout=5).close()
+    try:
+        urllib.request.urlopen(req, timeout=5).close()
+    except Exception:
+        NTFY_RESULTS["failure"] += 1
+        raise
+    NTFY_RESULTS["success"] += 1
 
 def prom_label(value):
     return str(value).replace("\\", "\\\\").replace("\n", "\\n").replace('"', '\\"')
@@ -287,6 +297,10 @@ def metrics_text():
         "# HELP action_runner_alert_notifications Alertmanager notifications received by action-runner.",
         "# TYPE action_runner_alert_notifications gauge",
         f"action_runner_alert_notifications {len(ALERT_NOTIFICATIONS)}",
+        "# HELP action_runner_ntfy_publish_total ntfy push attempts by outcome since process start.",
+        "# TYPE action_runner_ntfy_publish_total counter",
+        f'action_runner_ntfy_publish_total{{outcome="success"}} {NTFY_RESULTS["success"]}',
+        f'action_runner_ntfy_publish_total{{outcome="failure"}} {NTFY_RESULTS["failure"]}',
         "# HELP uptime_kuma_status_page_up Whether action-runner can read the Uptime Kuma status page.",
         "# TYPE uptime_kuma_status_page_up gauge",
     ]
