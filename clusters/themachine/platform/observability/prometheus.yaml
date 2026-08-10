@@ -156,6 +156,22 @@ data:
               summary: "Kitchen Hub kiosk unavailable"
               description: "kitchen-hub Chromium kiosk or screen-policy timer is not healthy."
 
+          - alert: KitchenHubSelfHealed
+            expr: increase(kitchen_hub_selfheal_total[1h]) > 0
+            labels:
+              severity: warning
+            annotations:
+              summary: "Kitchen Hub self-healed"
+              description: "kitchen-hub took corrective action {{ $labels.action }} in the last hour."
+
+          - alert: KitchenHubSelfHealThrashing
+            expr: increase(kitchen_hub_selfheal_total{action=~"reboot_.*"}[6h]) > 1
+            labels:
+              severity: critical
+            annotations:
+              summary: "Kitchen Hub rebooting repeatedly"
+              description: "kitchen-hub rebooted more than once in 6h via {{ $labels.action }}; the self-heal cooldown should have prevented this, so the underlying fault is not clearing."
+
           - alert: NodeFilesystemAlmostFull
             expr: 100 * (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) > 85
             for: 10m
@@ -411,7 +427,7 @@ spec:
   template:
     metadata:
       annotations:
-        homelab.zakharhome.org/prometheus-config-version: "2026-08-09-kitchen-hub-1"
+        homelab.zakharhome.org/prometheus-config-version: "2026-08-10-kitchen-hub-selfheal-1"
       labels:
         app.kubernetes.io/name: prometheus
     spec:
