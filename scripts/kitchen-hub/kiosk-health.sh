@@ -15,7 +15,11 @@ decide() {
     echo reboot_touch
   elif [ "$_net" -ge 10 ] && [ "$_reboot_ok" = 1 ]; then
     echo reboot_network
-  elif [ "$_net" -ge 3 ]; then
+  elif [ "$_net" -ge 3 ] && [ $(( (_net - 3) % 15 )) -eq 0 ]; then
+    # Backs off to every 15th check after the first try. A real AP outage on
+    # 2026-08-10 ran 107 minutes with the reboot held by cooldown, and an
+    # every-minute rung tore down 105 in-progress association attempts to no
+    # effect. Retry, do not hammer.
     echo wifi_reconnect
   elif [ "$_kiosk" -ge 2 ]; then
     echo kiosk_restart

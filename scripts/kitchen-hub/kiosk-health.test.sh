@@ -24,7 +24,10 @@ expect none            9     9   9     1         120    # still settling after b
 expect wifi_reconnect  0     3   0     1         9000   # 3 min of no gateway
 expect none            0     2   0     1         9000   # 2 min is not yet enough
 expect reboot_network  0     10  0     1         9000   # reconnect did not take
-expect wifi_reconnect  0     10  0     0         9000   # ... but cooldown holds the reboot
+expect none            0     10  0     0         9000   # cooldown holds the reboot, backoff holds the retry
+expect none            0     4   0     1         9000   # backoff: no retry between attempts
+expect none            0     17  0     0         9000   # ... still backing off, cooldown still holding
+expect wifi_reconnect  0     18  0     0         9000   # ... 15 checks on, retry while cooldown holds
 expect reboot_touch    5     0   0     1         9000   # yesterday's USB fault
 expect none            5     0   0     0         9000   # cooldown holds it, alert covers the gap
 expect none            4     0   0     1         9000   # 4 min is not yet enough

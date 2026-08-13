@@ -164,13 +164,19 @@ data:
               summary: "Kitchen Hub self-healed"
               description: "kitchen-hub took corrective action {{ $labels.action }} in the last hour."
 
+          # changes(), not increase(): increase() extrapolates, so a single
+          # reboot in the window evaluates to ~1.0007 and any "> 1" threshold
+          # trips on one event. That shipped and fired critical for 79% of its
+          # first 60h. changes() counts increments exactly.
+          # The 6h self-heal cooldown caps reboots at 4/day, so >= 3 is
+          # "saturated", not "happened once".
           - alert: KitchenHubSelfHealThrashing
-            expr: increase(kitchen_hub_selfheal_total{action=~"reboot_.*"}[6h]) > 1
+            expr: sum by (instance) (changes(kitchen_hub_selfheal_total{action=~"reboot_.*"}[24h])) >= 3
             labels:
               severity: critical
             annotations:
               summary: "Kitchen Hub rebooting repeatedly"
-              description: "kitchen-hub rebooted more than once in 6h via {{ $labels.action }}; the self-heal cooldown should have prevented this, so the underlying fault is not clearing."
+              description: "kitchen-hub self-healed by rebooting 3 or more times in 24h. The cooldown caps this at 4, so the underlying fault is not clearing and needs hardware attention."
 
           - alert: NodeFilesystemAlmostFull
             expr: 100 * (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) > 85
@@ -427,7 +433,7 @@ spec:
   template:
     metadata:
       annotations:
-        homelab.zakharhome.org/prometheus-config-version: "2026-08-10-kitchen-hub-selfheal-1"
+        homelab.zakharhome.org/prometheus-config-version: "2026-08-12-selfheal-thrash-retune-1"
       labels:
         app.kubernetes.io/name: prometheus
     spec:
