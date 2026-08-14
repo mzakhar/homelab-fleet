@@ -1,0 +1,11 @@
+# Keep the wall panel's USB hub and digitizer out of autosuspend.
+#
+# usbcore.autosuspend defaults to 2s and a kiosk touchscreen is idle almost
+# always, so both devices are suspend candidates continuously. The panel's
+# hub (1a40:0101) drops off the bus and does not re-present; nothing on the
+# Pi can recover it, because Pi 5 has no software-controlled port power
+# switch, so only a full reboot drops VBUS. Prevention is the only lever.
+#
+# See Machines.md#kitchen-hub, 2026-08-14.
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="1a40", ATTR{idProduct}=="0101", TEST=="power/control", ATTR{power/control}="on"
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="222a", ATTR{idProduct}=="0001", TEST=="power/control", ATTR{power/control}="on"
