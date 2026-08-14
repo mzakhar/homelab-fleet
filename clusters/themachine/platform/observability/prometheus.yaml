@@ -361,6 +361,25 @@ data:
               summary: "Clean Mail Gmail watch expiring"
               description: "Clean Mail Gmail push watch expires in under 24 hours; renewal is failing or stalled."
 
+          # Demotion silences the alerts that would otherwise catch a dead grant.
+          # Since CleanMail-backend#130 an account whose persistent credential
+          # returns invalid_grant leaves grant_state='active', and every hourly
+          # job filters on that — so the failing refreshes stop being attempted,
+          # cleanmail_oauth_refresh_total stops reporting invalid_grant, and
+          # CleanMailGmailWatchRenewalFailing above goes quiet. That silence is
+          # indistinguishable from recovery. Alert on the transition itself.
+          #
+          # No `for:` — this is a counter increment on a discrete state change,
+          # not a condition that has to persist to be real. Waiting to confirm
+          # it would only delay the notification.
+          - alert: CleanMailGmailGrantDemoted
+            expr: increase(cleanmail_gmail_grant_transition_total{transition="demoted"}[1h]) > 0
+            labels:
+              severity: critical
+            annotations:
+              summary: "Clean Mail Gmail grant demoted"
+              description: "A Clean Mail Gmail account's persistent grant returned invalid_grant and was demoted out of 'active'. Background jobs now skip that account, so its mail ingestion is stopped until a browser refresh mirrors a live token back or the account is re-authorized."
+
           # Steady state puts every observation in the 750-1000s bucket, so a
           # quantile threshold near 900 is pure interpolation noise. Count the
           # observations above the next boundary instead — exact, no guessing.
