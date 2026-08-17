@@ -130,8 +130,12 @@ data:
               summary: "Prometheus target down"
               description: "{{ $labels.job }} target {{ $labels.instance }} has been down for more than 2 minutes."
 
+          # kitchen-hub is excluded because rebooting is its self-heal, not an
+          # event: kiosk-health.sh reboots on a vanished touchscreen, so this
+          # alert fired 12 times over 2026-08-14..17 reporting the remedy for a
+          # fault KitchenHubSelfHealThrashing was already reporting.
           - alert: HostRebooted
-            expr: changes(node_boot_time_seconds[15m]) > 0
+            expr: changes(node_boot_time_seconds{instance!="kitchen-hub"}[15m]) > 0
             labels:
               severity: warning
             annotations:
@@ -156,13 +160,13 @@ data:
               summary: "Kitchen Hub kiosk unavailable"
               description: "kitchen-hub Chromium kiosk or screen-policy timer is not healthy."
 
-          - alert: KitchenHubSelfHealed
-            expr: increase(kitchen_hub_selfheal_total[1h]) > 0
-            labels:
-              severity: warning
-            annotations:
-              summary: "Kitchen Hub self-healed"
-              description: "kitchen-hub took corrective action {{ $labels.action }} in the last hour."
+          # KitchenHubSelfHealed was removed 2026-08-17. A rolling 1h counter
+          # increase with no `for:` is a log line, not an alert: it stayed
+          # firing for ~68 of 72h while the touchscreen fault ran, and every
+          # notification said only that the box had done what it is built to
+          # do. kitchen_hub_selfheal_total is still exported and still on the
+          # Grafana panel; KitchenHubSelfHealThrashing below is the rung that
+          # pages, because it fires on the self-heal failing to help.
 
           # changes(), not increase(): increase() extrapolates, so a single
           # reboot in the window evaluates to ~1.0007 and any "> 1" threshold
@@ -452,7 +456,7 @@ spec:
   template:
     metadata:
       annotations:
-        homelab.zakharhome.org/prometheus-config-version: "2026-08-12-selfheal-thrash-retune-1"
+        homelab.zakharhome.org/prometheus-config-version: "2026-08-17-kitchen-hub-alert-fatigue-1"
       labels:
         app.kubernetes.io/name: prometheus
     spec:
