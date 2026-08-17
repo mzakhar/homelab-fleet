@@ -13,7 +13,25 @@ data:
       group_by: ["alertname", "severity"]
       group_wait: 30s
       group_interval: 10m
-      repeat_interval: 12h
+      # Split by severity: a critical that nobody has cleared should keep
+      # nagging, a warning should not re-page twice a day for three days. The
+      # flat 12h did exactly that during the 2026-08-14..17 kitchen-hub fault.
+      repeat_interval: 6h
+      routes:
+        - matchers: [severity="warning"]
+          repeat_interval: 24h
+
+    # One fault, one notification. A wedged USB digitizer on kitchen-hub emits
+    # the touchscreen alert, the kiosk alert, and a target-down for every
+    # self-heal reboot -- all of them symptoms of the condition
+    # KitchenHubSelfHealThrashing already names, and none of them separately
+    # actionable. `equal: [instance]` is what keeps this scoped: a
+    # PrometheusTargetDown for homeserver is untouched.
+    inhibit_rules:
+      - source_matchers: [alertname="KitchenHubSelfHealThrashing"]
+        target_matchers:
+          - alertname=~"KitchenHubTouchscreenMissing|KitchenHubKioskUnavailable|PrometheusTargetDown"
+        equal: [instance]
 
     receivers:
       - name: action-runner
