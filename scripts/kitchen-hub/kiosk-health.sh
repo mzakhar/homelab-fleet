@@ -163,8 +163,23 @@ case "$action" in
     ;;
   usb_reset)
     # Re-enumerates the whole bus in about a second against a reboot's minute.
-    # Verified on kitchen-hub 2026-08-17: hub and digitizer both returned,
-    # hid-multitouch rebound, Chromium and the kiosk session untouched.
+    #
+    # UNPROVEN AGAINST THE REAL FAULT, deliberately shipped anyway. 2026-08-17
+    # drilled this by unbinding the hub in software: both devices returned,
+    # hid-multitouch rebound, Chromium untouched. That is a clean removal, not
+    # the wedged state the panel actually reaches, where the port reads
+    # "not attached" because the monitor has powered down its own upstream
+    # transceiver. Machines.md 2026-08-14 tested a rebind against that real
+    # state and it did NOT recover — but that test drove xhci-hcd.0, and the
+    # panel sits on xhci-hcd.1 (usb3). Whether it was on the other controller
+    # then or the wrong one was targeted is not recoverable from the notes.
+    #
+    # So this rung is a cheap bet, not a fix, and the next real occurrence
+    # settles it: usb_reset climbing while reboot_touch stays flat means it
+    # works; reboot_touch climbing anyway means the monitor's transceiver is
+    # down and only VBUS removal recovers it, which needs a uhubctl-capable
+    # powered hub. Costs one second to find out.
+    #
     # If the bind half fails the bus stays down, the touch streak keeps
     # climbing, and reboot_touch takes it — which is where it was going anyway.
     logger -t kiosk-health "self-heal: rebinding $controller after ${touch_down} failed checks"
