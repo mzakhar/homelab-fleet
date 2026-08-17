@@ -54,6 +54,15 @@ spec:
       app.kubernetes.io/name: alertmanager
   template:
     metadata:
+      annotations:
+        # Alertmanager mounts alertmanager.yml from a ConfigMap and never
+        # reloads it: a ConfigMap change neither restarts the pod nor triggers a
+        # reload, so without a bump here the config in git is not the config
+        # running. That is exactly how the 2026-08-10 kitchen-hub scrape target
+        # reached the cluster while the pod kept serving the previous config —
+        # see Machines.md. alloy, loki and prometheus all carry one of these;
+        # this deployment was the one that did not.
+        homelab.zakharhome.org/alertmanager-config-version: "2026-08-17-kitchen-hub-alert-fatigue-1"
       labels:
         app.kubernetes.io/name: alertmanager
     spec:

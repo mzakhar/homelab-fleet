@@ -456,7 +456,7 @@ spec:
   template:
     metadata:
       annotations:
-        homelab.zakharhome.org/prometheus-config-version: "2026-08-12-selfheal-thrash-retune-1"
+        homelab.zakharhome.org/prometheus-config-version: "2026-08-17-kitchen-hub-alert-fatigue-1"
       labels:
         app.kubernetes.io/name: prometheus
     spec:
