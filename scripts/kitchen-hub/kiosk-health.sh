@@ -164,21 +164,26 @@ case "$action" in
   usb_reset)
     # Re-enumerates the whole bus in about a second against a reboot's minute.
     #
-    # UNPROVEN AGAINST THE REAL FAULT, deliberately shipped anyway. 2026-08-17
-    # drilled this by unbinding the hub in software: both devices returned,
-    # hid-multitouch rebound, Chromium untouched. That is a clean removal, not
-    # the wedged state the panel actually reaches, where the port reads
-    # "not attached" because the monitor has powered down its own upstream
-    # transceiver. Machines.md 2026-08-14 tested a rebind against that real
-    # state and it did NOT recover — but that test drove xhci-hcd.0, and the
-    # panel sits on xhci-hcd.1 (usb3). Whether it was on the other controller
-    # then or the wrong one was targeted is not recoverable from the notes.
+    # DOES NOT RECOVER THE REAL FAULT. Kept as a one-second probe, not a fix.
     #
-    # So this rung is a cheap bet, not a fix, and the next real occurrence
-    # settles it: usb_reset climbing while reboot_touch stays flat means it
-    # works; reboot_touch climbing anyway means the monitor's transceiver is
-    # down and only VBUS removal recovers it, which needs a uhubctl-capable
-    # powered hub. Costs one second to find out.
+    # Shipped 2026-08-17 as a bet, on the strength of a drill that unbound the
+    # hub in software — both devices returned in about a second. A real
+    # occurrence 15 minutes later settled it the other way: the rebind ran at
+    # 11:59:41, the controller re-initialized cleanly ("new USB bus registered,
+    # assigned bus number 3"), and *nothing enumerated*. usb3 was left holding
+    # only its own root hub. The panel's hub never re-presented.
+    #
+    # That confirms Machines.md 2026-08-14 on the controller that actually owns
+    # the panel, closing the one gap in it — that test drove xhci-hcd.0 and
+    # this one drove xhci-hcd.1. The monitor powers down its own upstream
+    # transceiver and no host-side software brings it back, because Pi 5 has no
+    # software-controlled port power switch. Only a genuine VBUS drop works:
+    # a reboot, a physical replug, or a uhubctl-capable powered hub between Pi
+    # and panel, which is the standing recommendation.
+    #
+    # Worth keeping anyway at this price: it distinguishes the two failure
+    # modes automatically on every future occurrence, which matters if the
+    # panel is ever replaced, and it never delays reboot_touch.
     #
     # If the bind half fails the bus stays down, the touch streak keeps
     # climbing, and reboot_touch takes it — which is where it was going anyway.
