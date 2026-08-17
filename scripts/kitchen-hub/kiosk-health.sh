@@ -3,16 +3,24 @@ set -eu
 
 # The escalation ladder, as a function of how many consecutive checks each
 # probe has failed. Pure: no state, no devices, no side effects, so
-# `kiosk-health.sh --decide <touch> <net> <kiosk> <reboot_ok> <uptime>` is
-# runnable anywhere. See kiosk-health.test.sh.
+# `kiosk-health.sh --decide <touch> <net> <kiosk> <reboot_ok> <uptime> <reset_ok>`
+# is runnable anywhere. See kiosk-health.test.sh.
 decide() {
-  _touch=$1 _net=$2 _kiosk=$3 _reboot_ok=$4 _uptime=$5
+  _touch=$1 _net=$2 _kiosk=$3 _reboot_ok=$4 _uptime=$5 _reset_ok=$6
 
   # Let the box settle after boot before judging anything.
   if [ "$_uptime" -lt 300 ]; then echo none; return; fi
 
   if [ "$_touch" -ge 5 ] && [ "$_reboot_ok" = 1 ]; then
     echo reboot_touch
+  elif [ "$_touch" -ge 3 ] && [ "$_reset_ok" = 1 ]; then
+    # A controller rebind costs a second where a reboot costs a minute, so it
+    # sits below reboot_touch on streak and stays reachable above it: past
+    # streak 5 with the reboot held by its 6h cooldown, this still retries
+    # every 15 min instead of leaving the panel dead until the cooldown ends.
+    # That is the case that ran 2026-08-14..17 — twelve reboots, each one the
+    # only rung available.
+    echo usb_reset
   elif [ "$_net" -ge 10 ] && [ "$_reboot_ok" = 1 ]; then
     echo reboot_network
   elif [ "$_net" -ge 3 ] && [ $(( (_net - 3) % 15 )) -eq 0 ]; then
@@ -56,8 +64,9 @@ streak() {
   read_num "streak.$1"
 }
 
+touch_node=/dev/input/by-id/usb-ILITEK_ILITEK-TP-event-if00
 touchscreen=0
-test -e /dev/input/by-id/usb-ILITEK_ILITEK-TP-event-if00 && touchscreen=1
+test -e "$touch_node" && touchscreen=1
 
 hdmi=0
 test "$(cat /sys/class/drm/card1-HDMI-A-1/status 2>/dev/null || true)" = connected && hdmi=1
@@ -82,10 +91,12 @@ touch_down=$(streak touchscreen "$touchscreen")
 net_down=$(streak network "$network")
 kiosk_down=$(streak kiosk "$kiosk")
 
-# Rebooting is the last rung, and for a vanished USB digitizer it is the only
-# one: the panel's hub runs off the panel's own supply, so nothing on this host
-# can power-cycle it. The cooldown keeps a persistent fault from becoming a loop.
+# Rebooting is the last rung. Nothing here can power-cycle the panel's hub —
+# it runs off the panel's own supply — but the host's USB controller can be
+# rebound, which re-enumerates the bus and is the cheaper rung above it. The
+# cooldowns keep a persistent fault from becoming a loop.
 reboot_cooldown=21600
+usb_reset_cooldown=900
 now=$(date +%s)
 uptime_s=$(awk '{print int($1)}' /proc/uptime)
 if [ $(( now - $(read_num last-reboot) )) -ge "$reboot_cooldown" ]; then
@@ -93,8 +104,24 @@ if [ $(( now - $(read_num last-reboot) )) -ge "$reboot_cooldown" ]; then
 else
   reboot_ok=0
 fi
+if [ $(( now - $(read_num last-usb-reset) )) -ge "$usb_reset_cooldown" ]; then
+  usb_reset_ok=1
+else
+  usb_reset_ok=0
+fi
 
-action=$(decide "$touch_down" "$net_down" "$kiosk_down" "$reboot_ok" "$uptime_s")
+# Which xhci instance owns the panel, learned while the digitizer is present:
+# by the time a reset is wanted the device is gone and its sysfs path with it.
+# Re-derived on every healthy check, so moving the cable to the other USB port
+# corrects this by itself rather than silently resetting the wrong controller.
+if [ "$touchscreen" = 1 ]; then
+  found=$(udevadm info -q path -n "$touch_node" 2>/dev/null |
+    sed -n 's|.*/\(xhci-hcd\.[0-9]\)/.*|\1|p')
+  [ -n "$found" ] && printf '%s\n' "$found" > "$state/controller"
+fi
+controller=$(cat "$state/controller" 2>/dev/null || echo xhci-hcd.1)
+
+action=$(decide "$touch_down" "$net_down" "$kiosk_down" "$reboot_ok" "$uptime_s" "$usb_reset_ok")
 
 if [ "$action" != none ]; then
   write_num "count.$action" "$(( $(read_num "count.$action") + 1 ))"
@@ -117,7 +144,7 @@ umask 022
   printf 'kitchen_hub_network_up %s\n' "$network"
   printf '# HELP kitchen_hub_selfheal_total Corrective actions taken by this script.\n'
   printf '# TYPE kitchen_hub_selfheal_total counter\n'
-  for name in wifi_reconnect kiosk_restart reboot_touch reboot_network; do
+  for name in wifi_reconnect kiosk_restart usb_reset reboot_touch reboot_network; do
     printf 'kitchen_hub_selfheal_total{action="%s"} %s\n' "$name" "$(read_num "count.$name")"
   done
 } > "$temporary"
@@ -133,6 +160,33 @@ case "$action" in
     # lwrespawn is Chromium's parent and restarts it, so killing it is the reload.
     logger -t kiosk-health "self-heal: restarting chromium after ${kiosk_down} failed checks"
     pkill -x chromium >/dev/null 2>&1 || true
+    ;;
+  usb_reset)
+    # Re-enumerates the whole bus in about a second against a reboot's minute.
+    #
+    # UNPROVEN AGAINST THE REAL FAULT, deliberately shipped anyway. 2026-08-17
+    # drilled this by unbinding the hub in software: both devices returned,
+    # hid-multitouch rebound, Chromium untouched. That is a clean removal, not
+    # the wedged state the panel actually reaches, where the port reads
+    # "not attached" because the monitor has powered down its own upstream
+    # transceiver. Machines.md 2026-08-14 tested a rebind against that real
+    # state and it did NOT recover — but that test drove xhci-hcd.0, and the
+    # panel sits on xhci-hcd.1 (usb3). Whether it was on the other controller
+    # then or the wrong one was targeted is not recoverable from the notes.
+    #
+    # So this rung is a cheap bet, not a fix, and the next real occurrence
+    # settles it: usb_reset climbing while reboot_touch stays flat means it
+    # works; reboot_touch climbing anyway means the monitor's transceiver is
+    # down and only VBUS removal recovers it, which needs a uhubctl-capable
+    # powered hub. Costs one second to find out.
+    #
+    # If the bind half fails the bus stays down, the touch streak keeps
+    # climbing, and reboot_touch takes it — which is where it was going anyway.
+    logger -t kiosk-health "self-heal: rebinding $controller after ${touch_down} failed checks"
+    write_num last-usb-reset "$now"
+    echo "$controller" > /sys/bus/platform/drivers/xhci-hcd/unbind 2>/dev/null || true
+    sleep 2
+    echo "$controller" > /sys/bus/platform/drivers/xhci-hcd/bind 2>/dev/null || true
     ;;
   reboot_touch|reboot_network)
     logger -t kiosk-health "self-heal: rebooting ($action)"

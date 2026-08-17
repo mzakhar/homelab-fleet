@@ -5,7 +5,7 @@ set -eu
 script="$(dirname "$0")/kiosk-health.sh"
 failures=0
 
-# expect <want> <touch> <net> <kiosk> <reboot_ok> <uptime>
+# expect <want> <touch> <net> <kiosk> <reboot_ok> <uptime> <reset_ok>
 expect() {
   want=$1
   shift
@@ -18,21 +18,25 @@ expect() {
   fi
 }
 
-#      want            touch net kiosk reboot_ok uptime
-expect none            0     0   0     1         9000   # everything healthy
-expect none            9     9   9     1         120    # still settling after boot
-expect wifi_reconnect  0     3   0     1         9000   # 3 min of no gateway
-expect none            0     2   0     1         9000   # 2 min is not yet enough
-expect reboot_network  0     10  0     1         9000   # reconnect did not take
-expect none            0     10  0     0         9000   # cooldown holds the reboot, backoff holds the retry
-expect none            0     4   0     1         9000   # backoff: no retry between attempts
-expect none            0     17  0     0         9000   # ... still backing off, cooldown still holding
-expect wifi_reconnect  0     18  0     0         9000   # ... 15 checks on, retry while cooldown holds
-expect reboot_touch    5     0   0     1         9000   # yesterday's USB fault
-expect none            5     0   0     0         9000   # cooldown holds it, alert covers the gap
-expect none            4     0   0     1         9000   # 4 min is not yet enough
-expect kiosk_restart   0     0   2     1         9000   # chromium gone
-expect reboot_touch    5     10  2     1         9000   # touch wins the ladder
+#      want            touch net kiosk reboot_ok uptime reset_ok
+expect none            0     0   0     1         9000   1   # everything healthy
+expect none            9     9   9     1         120    1   # still settling after boot
+expect wifi_reconnect  0     3   0     1         9000   1   # 3 min of no gateway
+expect none            0     2   0     1         9000   1   # 2 min is not yet enough
+expect reboot_network  0     10  0     1         9000   1   # reconnect did not take
+expect none            0     10  0     0         9000   1   # cooldown holds the reboot, backoff holds the retry
+expect none            0     4   0     1         9000   1   # backoff: no retry between attempts
+expect none            0     17  0     0         9000   1   # ... still backing off, cooldown still holding
+expect wifi_reconnect  0     18  0     0         9000   1   # ... 15 checks on, retry while cooldown holds
+expect usb_reset       3     0   0     1         9000   1   # 3 min of no digitizer: rebind the controller
+expect none            2     0   0     1         9000   1   # 2 min is not yet enough
+expect none            3     0   0     1         9000   0   # reset cooldown holds the rebind
+expect reboot_touch    5     0   0     1         9000   1   # rebind did not take; reboot outranks it
+expect usb_reset       5     0   0     0         9000   1   # reboot on cooldown: keep retrying the cheap rung
+expect none            5     0   0     0         9000   0   # both cooldowns holding, alert covers the gap
+expect kiosk_restart   0     0   2     1         9000   1   # chromium gone
+expect reboot_touch    5     10  2     1         9000   1   # touch wins the ladder
+expect usb_reset       3     10  2     1         9000   1   # ... and the cheap touch rung outranks a net reboot
 
 if [ "$failures" -eq 0 ]; then
   echo "all checks passed"
