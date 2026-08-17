@@ -2,10 +2,23 @@
 #
 # usbcore.autosuspend defaults to 2s and a kiosk touchscreen is idle almost
 # always, so both devices are suspend candidates continuously. The panel's
-# hub (1a40:0101) drops off the bus and does not re-present; nothing on the
-# Pi can recover it, because Pi 5 has no software-controlled port power
-# switch, so only a full reboot drops VBUS. Prevention is the only lever.
+# hub (1a40:0101) drops off the bus and does not re-present.
 #
 # See Machines.md#kitchen-hub, 2026-08-14.
+#
+# 2026-08-17: this did not fix it. Both devices have carried power/control=on
+# since, and the hub still dropped twelve more times over the following three
+# days, so autosuspend was not the cause. Two claims above are also wrong and
+# are corrected here rather than deleted, because they shaped the design of
+# the self-heal ladder:
+#
+#   - "nothing on the Pi can recover it" — rebinding xhci-hcd re-enumerates
+#     the bus and brings both devices back in about a second, verified live.
+#     kiosk-health.sh now has a usb_reset rung above reboot_touch.
+#   - "only a full reboot drops VBUS" — true, and irrelevant: recovery never
+#     needed VBUS to drop, only the controller to re-init.
+#
+# The rules stay. They cost nothing, autosuspend on a wall panel's digitizer
+# is wrong regardless, and ruling a cause out is worth the two lines.
 ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="1a40", ATTR{idProduct}=="0101", TEST=="power/control", ATTR{power/control}="on"
 ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="222a", ATTR{idProduct}=="0001", TEST=="power/control", ATTR{power/control}="on"
