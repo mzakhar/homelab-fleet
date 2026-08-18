@@ -181,6 +181,13 @@ case "$action" in
     # a reboot, a physical replug, or a uhubctl-capable powered hub between Pi
     # and panel, which is the standing recommendation.
     #
+    # 2026-08-18 makes it emphatic rather than a single data point: 45 resets
+    # over 19 h produced zero recoveries, and all five 0->1 transitions in that
+    # window landed on a reboot. The official Pi PSU went in the same morning —
+    # throttled 0x50000 -> 0x0, EXT5V 4.87 V -> 5.16 V, the 5 A budget
+    # unlocked — and touch was still absent 648 of 1140 minutes. Power was
+    # never the cause, on the Pi side or in the budget.
+    #
     # Worth keeping anyway at this price: it distinguishes the two failure
     # modes automatically on every future occurrence, which matters if the
     # panel is ever replaced, and it never delays reboot_touch.
