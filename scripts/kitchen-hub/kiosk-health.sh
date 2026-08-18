@@ -183,10 +183,17 @@ case "$action" in
     #
     # 2026-08-18 makes it emphatic rather than a single data point: 45 resets
     # over 19 h produced zero recoveries, and all five 0->1 transitions in that
-    # window landed on a reboot. The official Pi PSU went in the same morning —
-    # throttled 0x50000 -> 0x0, EXT5V 4.87 V -> 5.16 V, the 5 A budget
-    # unlocked — and touch was still absent 648 of 1140 minutes. Power was
-    # never the cause, on the Pi side or in the budget.
+    # window landed on a reboot.
+    #
+    # Read that 19 h window as pre-swap only. The official Pi PSU went in at
+    # 11:41:57Z and a new data cable at 12:25:35Z, so a downtime percentage
+    # spanning the window says nothing about either. What does say something is
+    # narrow and specific: after the PSU swap the panel came up clean and the
+    # fault recurred at 12:22Z, 38 minutes in, with the supply measuring
+    # throttled 0x0 and EXT5V 5.16 V. One sample, but a real one, and it is why
+    # power is not the cause. The cable is a separate change and is not yet
+    # measured — survival between drops has historically ranged 7 min to 6h47m,
+    # so nothing under a day of clean uptime is evidence either way.
     #
     # Worth keeping anyway at this price: it distinguishes the two failure
     # modes automatically on every future occurrence, which matters if the
