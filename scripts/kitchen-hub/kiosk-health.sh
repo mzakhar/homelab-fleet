@@ -91,11 +91,23 @@ touch_down=$(streak touchscreen "$touchscreen")
 net_down=$(streak network "$network")
 kiosk_down=$(streak kiosk "$kiosk")
 
-# Rebooting is the last rung. Nothing here can power-cycle the panel's hub —
-# it runs off the panel's own supply — but the host's USB controller can be
-# rebound, which re-enumerates the bus and is the cheaper rung above it. The
-# cooldowns keep a persistent fault from becoming a loop.
-reboot_cooldown=21600
+# Rebooting is the last rung, and on this panel it is the only rung that has
+# ever recovered a dropped digitizer — 61 controller rebinds have produced zero
+# recoveries, while every single recovery in the series is a reboot.
+#
+# The cooldown exists to stop a persistent fault becoming a boot loop, and it
+# was 6 h while the fault fired ~4.3x/day. That tuning inverted: with the fault
+# down to ~2/day after the 2026-08-18 PSU and cable swaps, the cooldown became
+# the dominant cost rather than the protection. A drop at 15:01Z on 2026-08-18
+# left the panel dead until 18:27Z, and roughly 3h20m of that 3h26m was purely
+# this constant holding back the only rung that works.
+#
+# One hour, by explicit choice: a reboot costs ~40 s of a screen nobody is
+# looking at, and hours of dead touch costs the wall its whole purpose. Worst
+# case is 24 reboots/day, which KitchenHubSelfHealThrashing is retuned to catch
+# (>= 8 in 24 h) — that alert, not this constant, is what notices a fault that
+# is not clearing.
+reboot_cooldown=3600
 usb_reset_cooldown=900
 now=$(date +%s)
 uptime_s=$(awk '{print int($1)}' /proc/uptime)
@@ -164,21 +176,40 @@ case "$action" in
   usb_reset)
     # Re-enumerates the whole bus in about a second against a reboot's minute.
     #
-    # UNPROVEN AGAINST THE REAL FAULT, deliberately shipped anyway. 2026-08-17
-    # drilled this by unbinding the hub in software: both devices returned,
-    # hid-multitouch rebound, Chromium untouched. That is a clean removal, not
-    # the wedged state the panel actually reaches, where the port reads
-    # "not attached" because the monitor has powered down its own upstream
-    # transceiver. Machines.md 2026-08-14 tested a rebind against that real
-    # state and it did NOT recover — but that test drove xhci-hcd.0, and the
-    # panel sits on xhci-hcd.1 (usb3). Whether it was on the other controller
-    # then or the wrong one was targeted is not recoverable from the notes.
+    # DOES NOT RECOVER THE REAL FAULT. Kept as a one-second probe, not a fix.
     #
-    # So this rung is a cheap bet, not a fix, and the next real occurrence
-    # settles it: usb_reset climbing while reboot_touch stays flat means it
-    # works; reboot_touch climbing anyway means the monitor's transceiver is
-    # down and only VBUS removal recovers it, which needs a uhubctl-capable
-    # powered hub. Costs one second to find out.
+    # Shipped 2026-08-17 as a bet, on the strength of a drill that unbound the
+    # hub in software — both devices returned in about a second. A real
+    # occurrence 15 minutes later settled it the other way: the rebind ran at
+    # 11:59:41, the controller re-initialized cleanly ("new USB bus registered,
+    # assigned bus number 3"), and *nothing enumerated*. usb3 was left holding
+    # only its own root hub. The panel's hub never re-presented.
+    #
+    # That confirms Machines.md 2026-08-14 on the controller that actually owns
+    # the panel, closing the one gap in it — that test drove xhci-hcd.0 and
+    # this one drove xhci-hcd.1. The monitor powers down its own upstream
+    # transceiver and no host-side software brings it back, because Pi 5 has no
+    # software-controlled port power switch. Only a genuine VBUS drop works:
+    # a reboot, a physical replug, or a uhubctl-capable powered hub between Pi
+    # and panel, which is the standing recommendation.
+    #
+    # 2026-08-18 makes it emphatic rather than a single data point: 45 resets
+    # over 19 h produced zero recoveries, and all five 0->1 transitions in that
+    # window landed on a reboot.
+    #
+    # Read that 19 h window as pre-swap only. The official Pi PSU went in at
+    # 11:41:57Z and a new data cable at 12:25:35Z, so a downtime percentage
+    # spanning the window says nothing about either. What does say something is
+    # narrow and specific: after the PSU swap the panel came up clean and the
+    # fault recurred at 12:22Z, 38 minutes in, with the supply measuring
+    # throttled 0x0 and EXT5V 5.16 V. One sample, but a real one, and it is why
+    # power is not the cause. The cable is a separate change and is not yet
+    # measured — survival between drops has historically ranged 7 min to 6h47m,
+    # so nothing under a day of clean uptime is evidence either way.
+    #
+    # Worth keeping anyway at this price: it distinguishes the two failure
+    # modes automatically on every future occurrence, which matters if the
+    # panel is ever replaced, and it never delays reboot_touch.
     #
     # If the bind half fails the bus stays down, the touch streak keeps
     # climbing, and reboot_touch takes it — which is where it was going anyway.

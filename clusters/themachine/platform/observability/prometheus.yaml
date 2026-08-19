@@ -172,15 +172,25 @@ data:
           # reboot in the window evaluates to ~1.0007 and any "> 1" threshold
           # trips on one event. That shipped and fired critical for 79% of its
           # first 60h. changes() counts increments exactly.
-          # The 6h self-heal cooldown caps reboots at 4/day, so >= 3 is
-          # "saturated", not "happened once".
+          #
+          # Retuned 2026-08-19 alongside the self-heal cooldown, 6h -> 1h. The
+          # old threshold read "saturated": a 6h cooldown caps reboots at 4/day,
+          # so >= 3 meant the fault recurred nearly every time a reboot was
+          # allowed. A 1h cooldown caps at 24/day and that reasoning does not
+          # transfer -- the saturation-equivalent would be ~18, which is far too
+          # many dead panel-hours to sit through before anyone is told.
+          #
+          # So this is a rate threshold now, not a saturation one. Observed rate
+          # after the 2026-08-18 PSU and cable swaps is 2-3/day; >= 8 is roughly
+          # 3x that and a third of the cap, which is unambiguously "not
+          # clearing" without waiting for the ceiling.
           - alert: KitchenHubSelfHealThrashing
-            expr: sum by (instance) (changes(kitchen_hub_selfheal_total{action=~"reboot_.*"}[24h])) >= 3
+            expr: sum by (instance) (changes(kitchen_hub_selfheal_total{action=~"reboot_.*"}[24h])) >= 8
             labels:
               severity: critical
             annotations:
               summary: "Kitchen Hub rebooting repeatedly"
-              description: "kitchen-hub self-healed by rebooting 3 or more times in 24h. The cooldown caps this at 4, so the underlying fault is not clearing and needs hardware attention."
+              description: "kitchen-hub self-healed by rebooting 8 or more times in 24h, against a baseline of 2-3. Rebooting is the only action that recovers this panel, so a rate this high means the underlying fault is not clearing and needs hardware attention."
 
           - alert: NodeFilesystemAlmostFull
             expr: 100 * (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) > 85
@@ -456,7 +466,7 @@ spec:
   template:
     metadata:
       annotations:
-        homelab.zakharhome.org/prometheus-config-version: "2026-08-17-kitchen-hub-alert-fatigue-1"
+        homelab.zakharhome.org/prometheus-config-version: "2026-08-19-selfheal-cooldown-retune-1"
       labels:
         app.kubernetes.io/name: prometheus
     spec:
