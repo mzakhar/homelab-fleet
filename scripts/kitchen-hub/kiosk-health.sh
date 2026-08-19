@@ -91,11 +91,23 @@ touch_down=$(streak touchscreen "$touchscreen")
 net_down=$(streak network "$network")
 kiosk_down=$(streak kiosk "$kiosk")
 
-# Rebooting is the last rung. Nothing here can power-cycle the panel's hub —
-# it runs off the panel's own supply — but the host's USB controller can be
-# rebound, which re-enumerates the bus and is the cheaper rung above it. The
-# cooldowns keep a persistent fault from becoming a loop.
-reboot_cooldown=21600
+# Rebooting is the last rung, and on this panel it is the only rung that has
+# ever recovered a dropped digitizer — 61 controller rebinds have produced zero
+# recoveries, while every single recovery in the series is a reboot.
+#
+# The cooldown exists to stop a persistent fault becoming a boot loop, and it
+# was 6 h while the fault fired ~4.3x/day. That tuning inverted: with the fault
+# down to ~2/day after the 2026-08-18 PSU and cable swaps, the cooldown became
+# the dominant cost rather than the protection. A drop at 15:01Z on 2026-08-18
+# left the panel dead until 18:27Z, and roughly 3h20m of that 3h26m was purely
+# this constant holding back the only rung that works.
+#
+# One hour, by explicit choice: a reboot costs ~40 s of a screen nobody is
+# looking at, and hours of dead touch costs the wall its whole purpose. Worst
+# case is 24 reboots/day, which KitchenHubSelfHealThrashing is retuned to catch
+# (>= 8 in 24 h) — that alert, not this constant, is what notices a fault that
+# is not clearing.
+reboot_cooldown=3600
 usb_reset_cooldown=900
 now=$(date +%s)
 uptime_s=$(awk '{print int($1)}' /proc/uptime)
