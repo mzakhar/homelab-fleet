@@ -513,6 +513,42 @@ spec:
               mountPath: /prometheus
             - name: tmp
               mountPath: /tmp
+
+        # Prometheus reads rule files only at process start. A ConfigMap edit
+        # alone therefore lands the new rule on disk and nowhere else, and the
+        # prometheus-config-version annotation above is a manual bump that is
+        # easy to forget -- CleanMailGmailGrantDemoted sat unloaded for five days
+        # in August 2026 despite being present in prometheus-rules the whole
+        # time, and the alert it was meant to raise could not have fired.
+        #
+        # This watches the mounted rules directory and POSTs /-/reload (enabled
+        # by --web.enable-lifecycle above) whenever the projected contents
+        # change, so a rule edit goes live on Flux's own reconcile without a pod
+        # roll. Prometheus keeps its TSDB and in-memory state; only the config is
+        # re-read. The annotation stays useful for changes to prometheus.yml
+        # itself, which is a subPath mount and does not update in place.
+        - name: configmap-reload
+          image: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+          args:
+            - --volume-dir=/etc/prometheus/rules
+            - --webhook-url=http://127.0.0.1:9090/-/reload
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: rules
+              mountPath: /etc/prometheus/rules
+              readOnly: true
       volumes:
         - name: config
           configMap:
