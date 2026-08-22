@@ -3,24 +3,28 @@ set -eu
 
 # The escalation ladder, as a function of how many consecutive checks each
 # probe has failed. Pure: no state, no devices, no side effects, so
-# `kiosk-health.sh --decide <touch> <net> <kiosk> <reboot_ok> <uptime> <reset_ok>`
+# `kiosk-health.sh --decide <touch> <net> <kiosk> <reboot_ok> <uptime> <cycle_ok>`
 # is runnable anywhere. See kiosk-health.test.sh.
 decide() {
-  _touch=$1 _net=$2 _kiosk=$3 _reboot_ok=$4 _uptime=$5 _reset_ok=$6
+  _touch=$1 _net=$2 _kiosk=$3 _reboot_ok=$4 _uptime=$5 _cycle_ok=$6
 
   # Let the box settle after boot before judging anything.
   if [ "$_uptime" -lt 300 ]; then echo none; return; fi
 
   if [ "$_touch" -ge 5 ] && [ "$_reboot_ok" = 1 ]; then
     echo reboot_touch
-  elif [ "$_touch" -ge 3 ] && [ "$_reset_ok" = 1 ]; then
-    # A controller rebind costs a second where a reboot costs a minute, so it
-    # sits below reboot_touch on streak and stays reachable above it: past
-    # streak 5 with the reboot held by its 6h cooldown, this still retries
-    # every 15 min instead of leaving the panel dead until the cooldown ends.
-    # That is the case that ran 2026-08-14..17 — twelve reboots, each one the
-    # only rung available.
-    echo usb_reset
+  elif [ "$_touch" -ge 3 ] && [ "$_cycle_ok" = 1 ]; then
+    # Cutting port power costs ~3 s where a reboot costs ~40 s, so it sits
+    # below reboot_touch on streak and stays reachable above it: a drop that
+    # lands while the reboot cooldown is holding still gets retried every
+    # 15 min rather than waiting the cooldown out.
+    #
+    # This replaced usb_reset (an xhci controller rebind) on 2026-08-20 after
+    # that rung finished 0-for-80 against the real fault. A rebind re-inits the
+    # host controller and the panel never re-presents; this commands the root
+    # hub port itself off, which is the signal a physical replug sends and the
+    # only thing short of a reboot that has ever recovered this panel.
+    echo usb_power_cycle
   elif [ "$_net" -ge 10 ] && [ "$_reboot_ok" = 1 ]; then
     echo reboot_network
   elif [ "$_net" -ge 3 ] && [ $(( (_net - 3) % 15 )) -eq 0 ]; then
@@ -108,7 +112,7 @@ kiosk_down=$(streak kiosk "$kiosk")
 # (>= 8 in 24 h) — that alert, not this constant, is what notices a fault that
 # is not clearing.
 reboot_cooldown=3600
-usb_reset_cooldown=900
+usb_cycle_cooldown=900
 now=$(date +%s)
 uptime_s=$(awk '{print int($1)}' /proc/uptime)
 if [ $(( now - $(read_num last-reboot) )) -ge "$reboot_cooldown" ]; then
@@ -116,10 +120,10 @@ if [ $(( now - $(read_num last-reboot) )) -ge "$reboot_cooldown" ]; then
 else
   reboot_ok=0
 fi
-if [ $(( now - $(read_num last-usb-reset) )) -ge "$usb_reset_cooldown" ]; then
-  usb_reset_ok=1
+if [ $(( now - $(read_num last-usb-cycle) )) -ge "$usb_cycle_cooldown" ]; then
+  usb_cycle_ok=1
 else
-  usb_reset_ok=0
+  usb_cycle_ok=0
 fi
 
 # Which xhci instance owns the panel, learned while the digitizer is present:
@@ -133,7 +137,18 @@ if [ "$touchscreen" = 1 ]; then
 fi
 controller=$(cat "$state/controller" 2>/dev/null || echo xhci-hcd.1)
 
-action=$(decide "$touch_down" "$net_down" "$kiosk_down" "$reboot_ok" "$uptime_s" "$usb_reset_ok")
+# uhubctl addresses the root hub by bus and the panel's hub by the port it sits
+# on: ".../usb3/3-2/..." is bus 3, port 2. Learned and cached for the same
+# reason as the controller above — the path is gone when it is wanted.
+if [ "$touchscreen" = 1 ]; then
+  hp=$(udevadm info -q path -n "$touch_node" 2>/dev/null | awk -v RS=/ '
+    /^usb[0-9]+$/ { bus = substr($0, 4) }
+    bus != "" && /^[0-9]+-[0-9]+$/ { split($0, a, "-"); print bus, a[2]; exit }')
+  [ -n "$hp" ] && printf '%s\n' "$hp" > "$state/hubport"
+fi
+hubport=$(cat "$state/hubport" 2>/dev/null || echo "3 2")
+
+action=$(decide "$touch_down" "$net_down" "$kiosk_down" "$reboot_ok" "$uptime_s" "$usb_cycle_ok")
 
 if [ "$action" != none ]; then
   write_num "count.$action" "$(( $(read_num "count.$action") + 1 ))"
@@ -156,7 +171,10 @@ umask 022
   printf 'kitchen_hub_network_up %s\n' "$network"
   printf '# HELP kitchen_hub_selfheal_total Corrective actions taken by this script.\n'
   printf '# TYPE kitchen_hub_selfheal_total counter\n'
-  for name in wifi_reconnect kiosk_restart usb_reset reboot_touch reboot_network; do
+  # usb_reset stays in this list although nothing writes it any more: dropping
+  # it would make the series go stale and break the history that proves the
+  # rung was retired for cause.
+  for name in wifi_reconnect kiosk_restart usb_reset usb_power_cycle reboot_touch reboot_network; do
     printf 'kitchen_hub_selfheal_total{action="%s"} %s\n' "$name" "$(read_num "count.$name")"
   done
 } > "$temporary"
@@ -173,51 +191,41 @@ case "$action" in
     logger -t kiosk-health "self-heal: restarting chromium after ${kiosk_down} failed checks"
     pkill -x chromium >/dev/null 2>&1 || true
     ;;
-  usb_reset)
-    # Re-enumerates the whole bus in about a second against a reboot's minute.
+  usb_power_cycle)
+    # uhubctl commands the root hub port off, waits, and powers it back on.
+    # That is what a physical replug does, and a replug is one of only two
+    # things ever observed to recover this panel — the other being a reboot.
     #
-    # DOES NOT RECOVER THE REAL FAULT. Kept as a one-second probe, not a fix.
+    # DOES NOT RECOVER THE REAL FAULT FROM THIS HOST. Shipped 2026-08-20 as an
+    # explicit bet with both outcomes named in advance; 2026-08-22 settled it
+    # against, 17 cycles and zero recoveries across 12 outages that every one
+    # of them ended in a reboot.
     #
-    # Shipped 2026-08-17 as a bet, on the strength of a drill that unbound the
-    # hub in software — both devices returned in about a second. A real
-    # occurrence 15 minutes later settled it the other way: the rebind ran at
-    # 11:59:41, the controller re-initialized cleanly ("new USB bus registered,
-    # assigned bus number 3"), and *nothing enumerated*. usb3 was left holding
-    # only its own root hub. The panel's hub never re-presented.
+    # So Pi 5 does not actually drop VBUS on its root hub ports despite the
+    # root hub advertising ppps. Two independent software paths now say the
+    # same thing -- the sysfs port/disable test in Machines.md 2026-08-14 and
+    # this one through uhubctl's USB_PORT_FEAT_POWER control transfer -- and
+    # both are no-ops electrically. That is worth knowing rather than guessing:
+    # it is what turns an external uhubctl-capable powered hub from an
+    # assumption into a requirement.
     #
-    # That confirms Machines.md 2026-08-14 on the controller that actually owns
-    # the panel, closing the one gap in it — that test drove xhci-hcd.0 and
-    # this one drove xhci-hcd.1. The monitor powers down its own upstream
-    # transceiver and no host-side software brings it back, because Pi 5 has no
-    # software-controlled port power switch. Only a genuine VBUS drop works:
-    # a reboot, a physical replug, or a uhubctl-capable powered hub between Pi
-    # and panel, which is the standing recommendation.
+    # The rung stays, and not only for the record. It is the thing that will
+    # prove such a hub works the day one is fitted: cache hubport to the new
+    # hub's location and this code path is already the test.
     #
-    # 2026-08-18 makes it emphatic rather than a single data point: 45 resets
-    # over 19 h produced zero recoveries, and all five 0->1 transitions in that
-    # window landed on a reboot.
+    # Note the shape of the evidence that led here, because it repeats. The
+    # 2026-08-20 verification was a healthy-state cycle -- port "0000 off",
+    # both devices gone from lsusb, both back on power on -- which is exactly
+    # the clean-removal evidence that made usb_reset look good before it went
+    # 0-for-80. A clean removal is not the wedged state, and only the real
+    # fault can tell you anything.
     #
-    # Read that 19 h window as pre-swap only. The official Pi PSU went in at
-    # 11:41:57Z and a new data cable at 12:25:35Z, so a downtime percentage
-    # spanning the window says nothing about either. What does say something is
-    # narrow and specific: after the PSU swap the panel came up clean and the
-    # fault recurred at 12:22Z, 38 minutes in, with the supply measuring
-    # throttled 0x0 and EXT5V 5.16 V. One sample, but a real one, and it is why
-    # power is not the cause. The cable is a separate change and is not yet
-    # measured — survival between drops has historically ranged 7 min to 6h47m,
-    # so nothing under a day of clean uptime is evidence either way.
-    #
-    # Worth keeping anyway at this price: it distinguishes the two failure
-    # modes automatically on every future occurrence, which matters if the
-    # panel is ever replaced, and it never delays reboot_touch.
-    #
-    # If the bind half fails the bus stays down, the touch streak keeps
-    # climbing, and reboot_touch takes it — which is where it was going anyway.
-    logger -t kiosk-health "self-heal: rebinding $controller after ${touch_down} failed checks"
-    write_num last-usb-reset "$now"
-    echo "$controller" > /sys/bus/platform/drivers/xhci-hcd/unbind 2>/dev/null || true
-    sleep 2
-    echo "$controller" > /sys/bus/platform/drivers/xhci-hcd/bind 2>/dev/null || true
+    # Failure is safe either way: the touch streak keeps climbing to 5 and
+    # reboot_touch takes it, which is where it was going anyway.
+    logger -t kiosk-health "self-heal: power-cycling hub ${hubport} after ${touch_down} failed checks"
+    write_num last-usb-cycle "$now"
+    # shellcheck disable=SC2086 -- hubport is deliberately two words: hub, port
+    /usr/sbin/uhubctl -a cycle -l ${hubport%% *} -p ${hubport##* } >/dev/null 2>&1 || true
     ;;
   reboot_touch|reboot_network)
     logger -t kiosk-health "self-heal: rebooting ($action)"
