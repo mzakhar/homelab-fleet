@@ -26,8 +26,7 @@ spec:
   # The app repo's deployment.yaml references the floating :main tag. Pin the
   # digest here, the same way clean-mail is pinned, so a rebuild of :main never
   # rolls the cluster on its own — a deploy is a change to this file.
-  # sha256:2f3fab50 = Audio-Tools 2b4a271 (browser .sf2 import, centred dialogs,
-  # working recorder worklet, synth layout).
+  # sha256:7419e05e = Audio-Tools 352bf13 (issue #32 regressions).
   images:
     - name: ghcr.io/mzakhar/audio-tools
-      digest: sha256:2f3fab506a44293506c4a3c1bfd2c8e60cc4b98f903a3fd0ef511037e12c9a16
+      digest: sha256:7419e05e7f82d8192419886a1b56d5d616ecaad50a67f392f6993cdead91fced
