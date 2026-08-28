@@ -23,3 +23,11 @@ spec:
     name: audio-tools
   wait: true
   timeout: 5m
+  # The app repo's deployment.yaml references the floating :main tag. Pin the
+  # digest here, the same way clean-mail is pinned, so a rebuild of :main never
+  # rolls the cluster on its own — a deploy is a change to this file.
+  # sha256:eb703f4c = Audio-Tools 3eabd8a (UI shell rewrite, instrument browser,
+  # MIDI expression).
+  images:
+    - name: ghcr.io/mzakhar/audio-tools
+      digest: sha256:eb703f4c759934b8ca23e4c3ca35b2b305fa630880385fadd65b560a101362a3
