@@ -26,8 +26,8 @@ spec:
   # The app repo's deployment.yaml references the floating :main tag. Pin the
   # digest here, the same way clean-mail is pinned, so a rebuild of :main never
   # rolls the cluster on its own — a deploy is a change to this file.
-  # sha256:e5beefbc = Audio-Tools c0fe592 (sequencer rows follow the armed
-  # instrument; imported SoundFonts carry GM fallbacks).
+  # sha256:631e5524 = Audio-Tools e4ef29d (browse a folder of SoundFonts and
+  # import one preset; stereo, ROM and SF3 samples no longer fail a whole bank).
   images:
     - name: ghcr.io/mzakhar/audio-tools
-      digest: sha256:e5beefbc02648a993ba2ac395d344ea89236822c0d48c23f7d773e5e2da8d416
+      digest: sha256:631e5524d8a63695e35f27f8851574bec3ce557e28a61fea44c77a5eaca9f074
