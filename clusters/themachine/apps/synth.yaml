@@ -26,10 +26,9 @@ spec:
   # The app repo's deployment.yaml references the floating :main tag. Pin the
   # digest here, the same way clean-mail is pinned, so a rebuild of :main never
   # rolls the cluster on its own — a deploy is a change to this file.
-  # c038ef2 = grounded music discovery, Access-gated web proxy, shared leads,
-  # Freesound previews, and personal provider fallback.
+  # a0d4bb6 = discovery proxy image includes its web-search adapter.
   images:
     - name: ghcr.io/mzakhar/audio-tools
       digest: sha256:a55c32b8a9eb45748edbcb0b3590cb54bf5cf15c7699aae466aaf59b073fad82
     - name: ghcr.io/mzakhar/audio-tools-discovery
-      digest: sha256:61fa7fce6d59c3c91798e28ef47eede4a690426900c55828b885a8c08af2725f
+      digest: sha256:c0b39f9dbbbe31339df4d94b310dcc065e8ba48cb98841fe710b44b2c191dadc
