@@ -26,9 +26,11 @@ spec:
   # The app repo's deployment.yaml references the floating :main tag. Pin the
   # digest here, the same way clean-mail is pinned, so a rebuild of :main never
   # rolls the cluster on its own — a deploy is a change to this file.
-  # ae33c2d = pack MIDI bend/mod controls reach sample voices.
+  # 0ee4bb0 = DAW-control assistant: /api/assistant on the discovery proxy, plus
+  # the assistant dialog in the renderer. Ingress prefix widened to /api, so both
+  # images move together.
   images:
     - name: ghcr.io/mzakhar/audio-tools
-      digest: sha256:d1952d4cf2339caeb3a2c1517cf3eb70b3d5174bba1423dafcccfc32a50a5a01
+      digest: sha256:33b41482552e7e73a93a43daada2355c3fbdf06de512eabdd17cb1419323ac5e
     - name: ghcr.io/mzakhar/audio-tools-discovery
-      digest: sha256:48d6c0417d31b2dda24b30928ef206f07afef21cb7a4a98ae842f3024c671f41
+      digest: sha256:faa83992804b17703f3a72f856de8d692a86ebf133398ba706cd557265c10e43
