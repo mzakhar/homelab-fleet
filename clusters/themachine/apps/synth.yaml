@@ -26,9 +26,9 @@ spec:
   # The app repo's deployment.yaml references the floating :main tag. Pin the
   # digest here, the same way clean-mail is pinned, so a rebuild of :main never
   # rolls the cluster on its own — a deploy is a change to this file.
-  # a0d4bb6 = discovery proxy image includes its web-search adapter.
+  # 4e616ba = discovery proxy image includes both provider adapters.
   images:
     - name: ghcr.io/mzakhar/audio-tools
       digest: sha256:a55c32b8a9eb45748edbcb0b3590cb54bf5cf15c7699aae466aaf59b073fad82
     - name: ghcr.io/mzakhar/audio-tools-discovery
-      digest: sha256:c0b39f9dbbbe31339df4d94b310dcc065e8ba48cb98841fe710b44b2c191dadc
+      digest: sha256:48d6c0417d31b2dda24b30928ef206f07afef21cb7a4a98ae842f3024c671f41
