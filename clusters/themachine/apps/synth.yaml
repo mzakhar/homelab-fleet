@@ -26,11 +26,12 @@ spec:
   # The app repo's deployment.yaml references the floating :main tag. Pin the
   # digest here, the same way clean-mail is pinned, so a rebuild of :main never
   # rolls the cluster on its own — a deploy is a change to this file.
-  # cc200a8 = DAW-control assistant with plan forward references: an action can
-  # reference a track/clip/module an earlier action creates, ids are pre-minted
-  # so a plan fully validates before it applies. Upstream failures answer 424.
+  # 26eec4a = palette knob values become project state (schema v6) with presets,
+  # and the assistant's last four phases: palette param, pack patch and preset
+  # actions, an ask mode that answers from the digest without an actions field,
+  # and Electron parity. Both images move — the proxy learns `mode: 'ask'`.
   images:
     - name: ghcr.io/mzakhar/audio-tools
-      digest: sha256:ddab460cf810aae4b3c06ce34ba7c42973f7e6f05c73651cc623b13c18eee39a
+      digest: sha256:c47f85b30b25cbd28e6e5af3ea971302d15e29febce6117e7ace7b94924fc594
     - name: ghcr.io/mzakhar/audio-tools-discovery
-      digest: sha256:386e4d3a9e77e24051faef8682cc14b3d257415f9970a02f9a5085cd4a807df9
+      digest: sha256:6e246934416b3ecab83e63bf3268a206b4b8bb8f95e301564c31ff0ac8427205
