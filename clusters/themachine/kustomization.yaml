@@ -16,5 +16,4 @@ resources:
   - platform/homepage
   - platform/homeassistant
   - platform/cloudflared
-  - platform/signal-cli
   - sites/zakharhome

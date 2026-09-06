@@ -1,0 +1,63 @@
+[PenDriveMP]
+IC Type=PS2251-61/91
+[Parameter Mark]
+Parameter Type=F1_MP_21
+[Customize Info]
+USB VID=0x13FE
+USB PID=0x3E00
+String Product Name=USB DISK 2.0
+Inquiry Version=PMAP
+[TestItemOption]
+Do Preformat Test=1
+[Extra]
+Mode=3
+[Misc]
+Volume Label=USB DISK
+set1667=0x00
+[Advance]
+FC1=0xFF
+FC2=0x01
+[Firmware]
+ISP=0
+[Configuration]
+ExPBA=0
+[Sorting]
+FlashPartnumber=Auto
+CE Number=Auto
+Vendor=Auto
+PageSize=Auto
+DesignNM=Auto
+Size=Auto
+DoQC=0
+IQC=0
+TestRetryRead=1
+Disable Check BCO=0
+DoSorting=1
+DoMPALL=1
+SortingMode=12
+FlashSlot=1
+CustomerId=0x90
+BinMode=1
+DoF2=0
+DoFQC=0
+TestPlaneMode=0
+SortingB1Capacity=30500
+SortingB2Capacity=30000
+SortingB3Capacity=29600
+SortingB4Capacity=29000
+SortingB5Capacity=28000
+SortingB6Capacity=15200
+SortingB7Capacity=14800
+SortingB8Capacity=14000
+SortingB9Capacity=10000
+SortingB10Capacity=7680
+SortingB11Capacity=7500
+SortingB12Capacity=7000
+SortingB13Capacity=3920
+SortingB14Capacity=3840
+SortingB15Capacity=3700
+SortingB16Capacity=3500
+SortingB17Capacity=3000
+SortingB18Capacity=1920
+SortingB19Capacity=960
+SortingB20Capacity=480
