@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: signal-cli
+  namespace: signal-cli
+  labels:
+    app.kubernetes.io/name: signal-cli
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: signal-cli
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: signal-cli
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: signal-cli-rest-api
+          image: bbernhard/signal-cli-rest-api:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MODE
+              value: json-rpc
+          ports:
+            - name: http
+              containerPort: 8080
+              hostPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /v1/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /v1/health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 8
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /home/.local/share/signal-cli
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: signal-cli-data
