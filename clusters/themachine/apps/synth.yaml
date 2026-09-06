@@ -26,11 +26,11 @@ spec:
   # The app repo's deployment.yaml references the floating :main tag. Pin the
   # digest here, the same way clean-mail is pinned, so a rebuild of :main never
   # rolls the cluster on its own — a deploy is a change to this file.
-  # 0ee4bb0 = DAW-control assistant: /api/assistant on the discovery proxy, plus
-  # the assistant dialog in the renderer. Ingress prefix widened to /api, so both
-  # images move together.
+  # eda7c45 = DAW-control assistant, with the plan schema fix: strict json_schema
+  # was rejected by OpenAI because args cannot be closed. Assistant dialog in the
+  # renderer, /api/assistant on the proxy, ingress prefix /api.
   images:
     - name: ghcr.io/mzakhar/audio-tools
-      digest: sha256:33b41482552e7e73a93a43daada2355c3fbdf06de512eabdd17cb1419323ac5e
+      digest: sha256:cd3e62b7cb31ab14702969e3d1b941c4769675cecb82379eea31039a94f5b903
     - name: ghcr.io/mzakhar/audio-tools-discovery
-      digest: sha256:faa83992804b17703f3a72f856de8d692a86ebf133398ba706cd557265c10e43
+      digest: sha256:6034a7a02612b1c4b7f8610cf8acad41e21a371ac360d6f623c70a8856c307af
