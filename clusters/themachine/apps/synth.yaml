@@ -26,11 +26,11 @@ spec:
   # The app repo's deployment.yaml references the floating :main tag. Pin the
   # digest here, the same way clean-mail is pinned, so a rebuild of :main never
   # rolls the cluster on its own — a deploy is a change to this file.
-  # 4085897 = DAW-control assistant. Plan schema is non-strict (OpenAI rejects a
-  # strict schema whose args cannot be closed), and upstream failures answer 424
-  # so Cloudflare does not replace the JSON error with its own 5xx page.
+  # cc200a8 = DAW-control assistant with plan forward references: an action can
+  # reference a track/clip/module an earlier action creates, ids are pre-minted
+  # so a plan fully validates before it applies. Upstream failures answer 424.
   images:
     - name: ghcr.io/mzakhar/audio-tools
-      digest: sha256:f0379a4051b51511b2532cc4eafa440765b0e7b03ab699aa42c5fe84480b499d
+      digest: sha256:ddab460cf810aae4b3c06ce34ba7c42973f7e6f05c73651cc623b13c18eee39a
     - name: ghcr.io/mzakhar/audio-tools-discovery
-      digest: sha256:c823b9f38c92396b89c0c07684503d9b3a3adf745fabd3a1f18c53cf316c512b
+      digest: sha256:386e4d3a9e77e24051faef8682cc14b3d257415f9970a02f9a5085cd4a807df9
