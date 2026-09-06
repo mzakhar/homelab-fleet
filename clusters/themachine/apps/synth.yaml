@@ -26,11 +26,11 @@ spec:
   # The app repo's deployment.yaml references the floating :main tag. Pin the
   # digest here, the same way clean-mail is pinned, so a rebuild of :main never
   # rolls the cluster on its own — a deploy is a change to this file.
-  # eda7c45 = DAW-control assistant, with the plan schema fix: strict json_schema
-  # was rejected by OpenAI because args cannot be closed. Assistant dialog in the
-  # renderer, /api/assistant on the proxy, ingress prefix /api.
+  # 4085897 = DAW-control assistant. Plan schema is non-strict (OpenAI rejects a
+  # strict schema whose args cannot be closed), and upstream failures answer 424
+  # so Cloudflare does not replace the JSON error with its own 5xx page.
   images:
     - name: ghcr.io/mzakhar/audio-tools
-      digest: sha256:cd3e62b7cb31ab14702969e3d1b941c4769675cecb82379eea31039a94f5b903
+      digest: sha256:f0379a4051b51511b2532cc4eafa440765b0e7b03ab699aa42c5fe84480b499d
     - name: ghcr.io/mzakhar/audio-tools-discovery
-      digest: sha256:6034a7a02612b1c4b7f8610cf8acad41e21a371ac360d6f623c70a8856c307af
+      digest: sha256:c823b9f38c92396b89c0c07684503d9b3a3adf745fabd3a1f18c53cf316c512b
