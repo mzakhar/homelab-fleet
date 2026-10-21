@@ -10,3 +10,12 @@ Main CI run `39541825655` succeeded; local backend verification passed all 698 t
 - Rollback: restore previous digest in a fleet PR; retain database and checkpoints.
 - Validation: render root Kustomization before merge; verify Flux revision, ready
   backend image, and health endpoint after reconciliation.
+
+## Verified rollout
+
+Fleet PR #75 merged as `d103c4ffbd7700b1daf16580b77873e65ebfd31b`.
+Flux applied that revision; backend rollout completed. Pod
+`clean-mail-backend-7b747cdf6b-h7hh7` was Ready (1/1), with zero restarts.
+Health endpoint returned HTTP 200 and `{"status":"ok"}`. Read-only database
+verification confirmed schema `0015_mailbox_recovery`; recovery flag remains false.
+No secrets or frontend changed. Client rollout/real-device acceptance remain pending.
