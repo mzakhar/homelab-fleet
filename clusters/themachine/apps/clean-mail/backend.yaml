@@ -27,6 +27,8 @@ spec:
       app: clean-mail-backend
   template:
     metadata:
+      annotations:
+        cleanmail.zakharhome.org/config-revision: "mailbox-pixel-testing-2026-10-24"
       labels:
         app: clean-mail-backend
     spec:
