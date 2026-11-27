@@ -32,6 +32,6 @@ spec:
   # Renderer only; the discovery image is unchanged.
   images:
     - name: ghcr.io/mzakhar/audio-tools
-      digest: sha256:8754f75d0065e3d04de716c6c08d6fbbad11b9c34114083e0c8ebeaa6899556c
+      digest: sha256:078b2aa77a9b25329ce9be273b92c79af7065c96a78c30c0e664959075f83716
     - name: ghcr.io/mzakhar/audio-tools-discovery
       digest: sha256:6e246934416b3ecab83e63bf3268a206b4b8bb8f95e301564c31ff0ac8427205
