@@ -1,5 +1,7 @@
 # AGENTS.md
 
+Single source of agent instructions for this repo (`CLAUDE.md` only imports this file).
+
 ## Purpose
 
 `homelab-fleet` owns GitOps configuration for the home lab. Treat this repo as
@@ -26,17 +28,33 @@ the source of truth for the `themachine` k3s cluster and shared
 - `scripts/` holds bootstrap helpers not directly reconciled by Flux.
 - `specs/` holds plans, specs, and implementation decision logs.
 
+## Change Flow
+
+- Flux on `themachine` deploys from `origin/main`, so every change lands through a PR: branch
+  `mzakhar/<short-description>` from an up-to-date `main`, commit, push, open a PR, merge it.
+  Never push directly to `main`.
+- Stage explicit paths; the checkout can hold unrelated untracked files.
+- Validate cluster manifests with `kubectl kustomize clusters/themachine`
+  before pushing when YAML changes (skip for docs-only changes).
+- Flux reconciles within about 10 minutes of the merge. Verify read-only with
+  `ssh mzakhar@themachine 'kubectl get/describe/logs ...'`; anything that writes cluster
+  state (Secret edits, pod deletes, manual applies) is a separately approved step.
+
+### Clean Mail image pins
+
+`clusters/themachine/apps/clean-mail/` pins `clean-mail-backend` and `clean-mail-frontend` by
+digest. Deploy = after the app repo's merged `main` CI run succeeds, on a fleet branch run
+`scripts/pin-clean-mail-image.ps1 -Service backend|frontend|all` (refuses to run on `main`;
+resolves the digest on `themachine`), then commit, PR, merge. App repos: `mzakhar/CleanMail-backend`,
+`mzakhar/CleanMail-web-frontend`.
+
 ## Deployment Patterns
 
-- Flux on `themachine` deploys from `origin/main`.
 - App repos usually own their Kubernetes manifests under `deploy/k8s` or
   `k8s/base`; this repo registers them.
 - Platform workloads and fleet-owned sites are declared directly here.
 - Split large ConfigMaps into source files and wire them with Kustomize
   `configMapGenerator`.
-- Validate cluster manifests with `kubectl kustomize clusters/themachine`
-  before pushing when YAML changes.
-- For immediate rollout or verification, use `ssh mzakhar@themachine`.
 
 ## Zakharhome Targets
 
