@@ -26,11 +26,12 @@ spec:
   # The app repo's deployment.yaml references the floating :main tag. Pin the
   # digest here, the same way clean-mail is pinned, so a rebuild of :main never
   # rolls the cluster on its own — a deploy is a change to this file.
-  # 23ee9d8 = retro instrument UI redesign: warm light theme is the new default,
-  # tokenised dark/rainbow, canvases follow the theme, every surface restyled.
+  # c767c2e = pads: Drum Kit instrument (16 distinct 909 pads, hat choke,
+  # velocity timbre), SMC-PAD velocity curve, and SMC-PAD pad colours over
+  # vendor SysEx (requestMIDIAccess now asks for sysex). Includes 23ee9d8 retro UI.
   # Renderer only; the discovery image is unchanged.
   images:
     - name: ghcr.io/mzakhar/audio-tools
-      digest: sha256:1b8b184bf6b5761017151b832cd0102ca0be6f533e3d8bce855799f0037474eb
+      digest: sha256:c243b14e337e3de484022d957e65a77818609e4d31f461644a2285b9f6322254
     - name: ghcr.io/mzakhar/audio-tools-discovery
       digest: sha256:6e246934416b3ecab83e63bf3268a206b4b8bb8f95e301564c31ff0ac8427205
