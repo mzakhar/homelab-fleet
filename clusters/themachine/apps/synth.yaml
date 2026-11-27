@@ -26,8 +26,8 @@ spec:
   # The app repo's deployment.yaml references the floating :main tag. Pin the
   # digest here, the same way clean-mail is pinned, so a rebuild of :main never
   # rolls the cluster on its own — a deploy is a change to this file.
-  # 9a74494 = pads phase 4: lessons 0-10, timing calibration, scorer, ghost targets,
-  # lesson card. Includes 9dfc58d pads phase 3, 7242302 phase 2, c767c2e phase 1 +
+  # 7e6481f = pads phase 5: samples on pads, Slice to 16 (transient detect), lesson 11.
+  # Includes 9a74494 phase 4, 9dfc58d phase 3, 7242302 phase 2, c767c2e phase 1 +
   # SMC-PAD colours, 23ee9d8 retro UI.
   # Renderer only; the discovery image is unchanged.
   images:
