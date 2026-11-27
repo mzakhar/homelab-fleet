@@ -26,12 +26,12 @@ spec:
   # The app repo's deployment.yaml references the floating :main tag. Pin the
   # digest here, the same way clean-mail is pinned, so a rebuild of :main never
   # rolls the cluster on its own — a deploy is a change to this file.
-  # 9dfc58d = pads phase 3: SMC-PAD knobs/buttons, Repeat, Full, Ladder, banks A-D,
-  # overlays, LED mirror and controller learn dialog.
-  # Includes 7242302 pads phase 2, c767c2e pads phase 1 + SMC-PAD colours, 23ee9d8 retro UI.
+  # 9a74494 = pads phase 4: lessons 0-10, timing calibration, scorer, ghost targets,
+  # lesson card. Includes 9dfc58d pads phase 3, 7242302 phase 2, c767c2e phase 1 +
+  # SMC-PAD colours, 23ee9d8 retro UI.
   # Renderer only; the discovery image is unchanged.
   images:
     - name: ghcr.io/mzakhar/audio-tools
-      digest: sha256:f926f38e8722089e7298369907cda5c07ef6f2d86f10ded8f0b7a51723328aac
+      digest: sha256:8754f75d0065e3d04de716c6c08d6fbbad11b9c34114083e0c8ebeaa6899556c
     - name: ghcr.io/mzakhar/audio-tools-discovery
       digest: sha256:6e246934416b3ecab83e63bf3268a206b4b8bb8f95e301564c31ff0ac8427205
