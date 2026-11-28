@@ -26,12 +26,12 @@ spec:
   # The app repo's deployment.yaml references the floating :main tag. Pin the
   # digest here, the same way clean-mail is pinned, so a rebuild of :main never
   # rolls the cluster on its own — a deploy is a change to this file.
-  # 7e6481f = pads phase 5: samples on pads, Slice to 16 (transient detect), lesson 11.
-  # Includes 9a74494 phase 4, 9dfc58d phase 3, 7242302 phase 2, c767c2e phase 1 +
-  # SMC-PAD colours, 23ee9d8 retro UI.
+  # bebdd95 = FM-1 phase 1: firmware library (validate, store, seed catalog), CSP
+  # wasm-unsafe-eval. Includes 78505d9 FM-1 phase 0 docs, 7e6481f pads phase 5, 9a74494
+  # phase 4, 9dfc58d phase 3, 7242302 phase 2, c767c2e phase 1, 23ee9d8 retro UI.
   # Renderer only; the discovery image is unchanged.
   images:
     - name: ghcr.io/mzakhar/audio-tools
-      digest: sha256:078b2aa77a9b25329ce9be273b92c79af7065c96a78c30c0e664959075f83716
+      digest: sha256:b9c17181e5c7972780ba807acc3911f867888c8a0fc0c5b2408acee02d764f63
     - name: ghcr.io/mzakhar/audio-tools-discovery
       digest: sha256:6e246934416b3ecab83e63bf3268a206b4b8bb8f95e301564c31ff0ac8427205
