@@ -37,7 +37,7 @@ spec:
       serviceAccountName: clean-mail-backend
       containers:
         - name: backend
-          image: ghcr.io/mzakhar/clean-mail-backend@sha256:edf5f61d394f5e04716de6024a36eccdac2e508687a645a0b6890e36eca94931
+          image: ghcr.io/mzakhar/clean-mail-backend@sha256:09f6c495ab4e58bed498f508922e733a1e12336a75871795f514ba3d3ec1db65
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
